@@ -9,6 +9,10 @@
 #define GREEN "#00ed00"
 #define BLUE "#80c3bf"
 
+/* Change color instructions:
+ * use the command ui->elementYourChanging->setStyleSheet("background-color : newColor");
+ * then, use the command ui->elementYourChanging->repaint(); for those changes to be shown on gui.
+ */
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -23,12 +27,26 @@ public:
     ~MainWindow();
 
 private slots:
-//these aren't final
-    void on_pwrButton_pressed();
-
+    //slot that determines what calls a specific function based on the state of the program (ie; in session)
     void on_pwrButton_clicked();
 
-    void on_pwrButton_released();
+    //slot that determines what to call when the "hold" button is pressed
+    void on_holdButton_clicked();
+
+    //slot to call function when "up" button is pressed
+    void on_upButton_clicked();
+
+    //slot to call function when "down" button is pressed
+    void on_downButton_clicked();
+
+    //slot to determine what to do when check button is clicked
+    void on_checkButton_clicked();
+
+    //do something when the add profile button is clicked
+    void on_addProfileButton_clicked();
+
+    //slot when user selects a profile
+    void on_startSessionButton_clicked();
 
 private:
     Ui::MainWindow *ui;

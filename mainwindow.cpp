@@ -15,17 +15,43 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+
+/* SLOTS */
 void MainWindow::on_pwrButton_clicked()
 {
     qInfo("the button was clicked");
 }
-
-void MainWindow::on_pwrButton_pressed()
+void MainWindow::on_holdButton_clicked()
 {
-    qInfo("the button was held");
+    //doSomething
 }
 
-void MainWindow::on_pwrButton_released()
+void MainWindow::on_upButton_clicked()
 {
-    qInfo("button was released");
+    //doSomething
 }
+
+void MainWindow::on_downButton_clicked()
+{
+    //doSomething
+}
+
+void MainWindow::on_checkButton_clicked()
+{
+    //doSomething
+}
+
+void MainWindow::on_addProfileButton_clicked()
+{
+    //doSomething
+}
+
+void MainWindow::on_startSessionButton_clicked()
+{
+    //doSomething when user selects profile
+}
+/* END OF SLOTS */
+
+
+
+
