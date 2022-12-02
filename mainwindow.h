@@ -26,6 +26,17 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    
+    
+private:
+    /* Some helper functions that can be cut and paste later into functions to do some operations on the UI
+     * Not sure about what conditions need to be satisfied to do a lot of these so I am putting them as helpers for now
+     */
+    
+    //changes the color of the light, can be private later or just cut&paste into different function.
+    void greenLightOn(); //turns greenlight on
+    void greenLightOff(); //turns the greenlight off
+
 private slots:
     //slot that determines what calls a specific function based on the state of the program (ie; in session)
     void on_pwrButton_clicked();
