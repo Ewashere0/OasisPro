@@ -30,7 +30,7 @@ public:
     
 private:
 
-    int powerStatus;    // indicator of power status
+    bool powerStatus;    // indicator of power status
     bool inSessionStatus;   // checks whether a session is ongoing
     int currentSessionGroup;   // indicates what session group (duration) is selected
     int currentSessionType; // indicates what session type the user chose

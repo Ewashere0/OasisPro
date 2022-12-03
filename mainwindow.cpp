@@ -10,8 +10,13 @@ MainWindow::MainWindow(QWidget *parent)
 {
     powerStatus = false;
     ui->setupUi(this);
-    connect(ui->holdButton, SIGNAL(released()), this, SLOT(on_holdButton_clicked()));
-    connect(ui->upButton, SIGNAL(released()), this, SLOT(on_upButton_clicked()));
+    ui->holdButton->setEnabled(true);
+    ui->upButton->setEnabled(false);
+    ui->downButton->setEnabled(false);
+    ui->pwrButton->setEnabled(false);
+    ui->checkButton->setEnabled(false);
+    ui->tabWidget->setEnabled(false);
+
 }
 
 MainWindow::~MainWindow()
@@ -37,6 +42,7 @@ void MainWindow:: turnOn() {
     ui->checkButton->setEnabled(true);
     ui->tabWidget->setEnabled(true);
     powerStatus = !powerStatus;
+
 }
 void MainWindow:: turnOff() {
 
@@ -47,6 +53,7 @@ void MainWindow:: turnOff() {
     ui->checkButton->setEnabled(false);
     ui->tabWidget->setEnabled(false);
     powerStatus = !powerStatus;
+
 }
 
 void MainWindow:: promptSignIn() {
@@ -152,6 +159,7 @@ void MainWindow::on_pwrButton_clicked()
 }
 void MainWindow::on_holdButton_clicked()
 {
+
     if (powerStatus == true) {
         turnOff();
     }
@@ -163,7 +171,7 @@ void MainWindow::on_holdButton_clicked()
 
 void MainWindow::on_upButton_clicked()
 {
-    // Do something
+    cout<< "Up button pressed"<< endl;  // testing if button disabled on power off
 }
 
 void MainWindow::on_downButton_clicked()
