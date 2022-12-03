@@ -381,7 +381,7 @@ border-radius: 1.5em;
    <widget class="QLabel" name="canadaLabel">
     <property name="geometry">
      <rect>
-      <x>680</x>
+      <x>770</x>
       <y>460</y>
       <width>111</width>
       <height>41</height>
@@ -431,7 +431,7 @@ border-radius: 1.5em;
     <property name="geometry">
      <rect>
       <x>680</x>
-      <y>250</y>
+      <y>240</y>
       <width>241</width>
       <height>171</height>
      </rect>
@@ -704,7 +704,7 @@ color: rgb(128, 195, 191);</string>
      </property>
     </widget>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>50</x>
@@ -860,7 +860,7 @@ color: rgb(128, 195, 191);</string>
      </item>
     </layout>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>70</x>
@@ -944,7 +944,7 @@ color: rgb(128, 195, 191);</string>
      </item>
     </layout>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>530</x>
@@ -989,6 +989,35 @@ color: rgb(128, 195, 191);</string>
       </widget>
      </item>
     </layout>
+   </widget>
+   <widget class="QPushButton" name="holdButton">
+    <property name="geometry">
+     <rect>
+      <x>660</x>
+      <y>420</y>
+      <width>57</width>
+      <height>57</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: #e5e400;
+border: 0.2em solid #80c3bf;
+min-height: 3em;
+max-height: 3em;
+min-width: 3em;
+max-width: 3em;
+border-radius: 1.5em;
+
+</string>
+    </property>
+    <property name="text">
+     <string>HOLD</string>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
