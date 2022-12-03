@@ -1,13 +1,17 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include <iostream>
 
+using namespace std;
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
+    powerStatus = false;
     ui->setupUi(this);
-
+    connect(ui->holdButton, SIGNAL(released()), this, SLOT(on_holdButton_clicked()));
+    connect(ui->upButton, SIGNAL(released()), this, SLOT(on_upButton_clicked()));
 }
 
 MainWindow::~MainWindow()
@@ -25,122 +29,141 @@ void MainWindow::greenLightOff(){
     ui->pwrLight->repaint();
 }
 
-void turnOn() {
+void MainWindow:: turnOn() {
     // DO SOMETHING
+    ui->upButton->setEnabled(true);
+    ui->downButton->setEnabled(true);
+    ui->pwrButton->setEnabled(true);
+    ui->checkButton->setEnabled(true);
+    ui->tabWidget->setEnabled(true);
+    powerStatus = !powerStatus;
 }
-void turnOff() {
+void MainWindow:: turnOff() {
+
+    // DO SOMETHING
+    ui->upButton->setEnabled(false);
+    ui->downButton->setEnabled(false);
+    ui->pwrButton->setEnabled(false);
+    ui->checkButton->setEnabled(false);
+    ui->tabWidget->setEnabled(false);
+    powerStatus = !powerStatus;
+}
+
+void MainWindow:: promptSignIn() {
     // DO SOMETHING
 }
 
-void promptSignIn() {
+void MainWindow:: standby() {
     // DO SOMETHING
 }
 
-void standby() {
+void MainWindow:: handlePowerPress() {
     // DO SOMETHING
 }
 
-void handlePowerPress() {
+void MainWindow:: updateSessionsMenu() {
     // DO SOMETHING
 }
 
-void updateSessionsMenu() {
+void MainWindow:: handleDownPress() {
     // DO SOMETHING
 }
 
-void handleDownPress() {
+void MainWindow:: handleUpPress() {
     // DO SOMETHING
 }
 
-void handleUpPress() {
+void MainWindow:: handleSelectPress() {
     // DO SOMETHING
 }
 
-void handleSelectPress() {
+void MainWindow:: startSession() {
     // DO SOMETHING
 }
 
-void startSession() {
+void MainWindow:: displayBatteryLevel() {
     // DO SOMETHING
 }
 
-void displayBatteryLevel() {
+void MainWindow:: updateBatteryLevel() {
     // DO SOMETHING
 }
 
-void updateBatteryLevel() {
+void MainWindow:: handleBatteryLow() {
     // DO SOMETHING
 }
 
-void handleBatteryLow() {
+void MainWindow:: startConnectionTest() {
     // DO SOMETHING
 }
 
-void startConnectionTest() {
+void MainWindow:: displayConnection() {
     // DO SOMETHING
 }
 
-void displayConnection() {
+void MainWindow:: connectionInvalid() {
     // DO SOMETHING
 }
 
-void connectionInvalid() {
+void MainWindow:: connectionValid() {
     // DO SOMETHING
 }
 
-void connectionValid() {
+void MainWindow:: endConnectionTest() {
     // DO SOMETHING
 }
 
-void endConnectionTest() {
+void MainWindow:: continueSession() {
     // DO SOMETHING
 }
 
-void continueSession() {
+void MainWindow:: updateIntensity() {
     // DO SOMETHING
 }
 
-void updateIntensity() {
+void MainWindow:: savePreferences() {
     // DO SOMETHING
 }
 
-void savePreferences() {
+void MainWindow:: promptToRecord() {
     // DO SOMETHING
 }
 
-void promptToRecord() {
+void MainWindow:: recordTherapy() {
     // DO SOMETHING
 }
 
-void recordTherapy() {
+void MainWindow:: createUser() {
     // DO SOMETHING
 }
 
-void createUser() {
+void MainWindow:: selectUser() {
     // DO SOMETHING
 }
 
-void selectUser() {
-    // DO SOMETHING
-}
-
-void signIn() {
+void MainWindow:: signIn() {
     // DO SOMETHING
 }
 
 /* SLOTS */
 void MainWindow::on_pwrButton_clicked()
 {
-    greenLightOff();
+    //doSomething
 }
 void MainWindow::on_holdButton_clicked()
 {
-    //doSomething
+    if (powerStatus == true) {
+        turnOff();
+    }
+
+    else {
+        turnOn();
+    }
 }
 
 void MainWindow::on_upButton_clicked()
 {
-    //doSomething
+    // Do something
 }
 
 void MainWindow::on_downButton_clicked()
