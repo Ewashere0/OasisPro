@@ -2,6 +2,9 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "SessionGroup.h"
+#include <string>
+#include <list>
 
 /* Constants for color scheme sampled from device for altering color outside of design mode */
 #define YELLOW "#e5e400"
@@ -29,14 +32,20 @@ public:
     
     
 private:
-
     bool powerStatus;    // indicator of power status
     bool inSessionStatus;   // checks whether a session is ongoing
-    int currentSessionGroup;   // indicates what session group (duration) is selected
-    int currentSessionType; // indicates what session type the user chose
+    int curSessionGroupIndex;   // indicates what session group (duration) is selected
+    int curSessionIndex;
     bool signedInStatus;    // checks whether user is signed in
     int batteryLevel;   // indicates the battery level
-    int currentIntensity; // indicates the intensity level
+    int curDuration;    // Indicate the current duration of the chosen session (in mins), based on the chosen session group
+    int curIntensity; // indicates the intensity level
+    vector<Session> sessionGroup1; // 20-min group
+    vector<Session> sessionGroup2; // 40-min group
+    vector<Session> sessionGroup3; // user-designated group
+    vector<vector<Session>> sessionGroupList;
+    vector<string> sessionFreqRanges;
+    vector<string> cesModes;
 
     /* Some helper functions that can be cut and paste later into functions to do some operations on the UI
      * Not sure about what conditions need to be satisfied to do a lot of these so I am putting them as helpers for now
@@ -48,11 +57,7 @@ private:
     void promptSignIn(); // opens the sign in prompt for the user
     void standby(); // what does this function do?
 
-    void handlePowerPress(); // handles the functionality for the power button
     void updateSessionsMenu(); // updates the UI of the available sessions depending on the session group
-    void handleDownPress(); // handles the down button press for selecting session type
-    void handleUpPress(); // handles the up button press for selecting session type
-    void handleSelectPress(); // handles the select button press to confirm the session start
     void startSession(); // starts the session functionality
     void displayBatteryLevel(); // displays the current battery level by checking the batteryLevel variable
     void updateBatteryLevel(); // updates the batterylevel variable after
@@ -77,26 +82,20 @@ private:
     void greenLightOff(); //turns the greenlight off
 
 private slots:
-    //slot that determines what calls a specific function based on the state of the program (ie; in session)
-    void on_pwrButton_clicked();
+    void handlePowerPress(); // handles the functionality for the power button
 
     //slot that determines what to call when the "hold" button is pressed
-    void on_holdButton_clicked();
+    void handleHoldPress();
 
-    //slot to call function when "up" button is pressed
-    void on_upButton_clicked();
-
-    //slot to call function when "down" button is pressed
-    void on_downButton_clicked();
-
-    //slot to determine what to do when check button is clicked
-    void on_checkButton_clicked();
+    void handleDownPress(); // handles the down button press for selecting session type
+    void handleUpPress(); // handles the up button press for selecting session type
+    void handleSelectPress(); // handles the select button press to confirm the session start
 
     //do something when the add profile button is clicked
-    void on_addProfileButton_clicked();
+    void handleAddProfilePress();
 
     //slot when user selects a profile
-    void on_startSessionButton_clicked();
+    void handleStartSessionPress();
 
 private:
     Ui::MainWindow *ui;

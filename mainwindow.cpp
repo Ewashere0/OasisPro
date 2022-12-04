@@ -14,9 +14,63 @@ MainWindow::MainWindow(QWidget *parent)
     ui->upButton->setEnabled(false);
     ui->downButton->setEnabled(false);
     ui->pwrButton->setEnabled(false);
-    ui->checkButton->setEnabled(false);
+    ui->selectButton->setEnabled(false);
     ui->tabWidget->setEnabled(false);
 
+    // Connect buttons to slot functions
+    connect(ui->pwrButton, SIGNAL(released()), this, SLOT (handlePowerPress()));
+    connect(ui->holdButton, SIGNAL(released()), this, SLOT (handleHoldPress()));
+    connect(ui->upButton, SIGNAL(released()), this, SLOT (handleUpPress()));
+    connect(ui->downButton, SIGNAL(released()), this, SLOT (handleDownPress()));
+    connect(ui->selectButton, SIGNAL(released()), this, SLOT (handleSelectPress()));
+    connect(ui->startSessionButton, SIGNAL(released()), this, SLOT (handleStartSessionPress()));
+    connect(ui->addProfileButton, SIGNAL(released()), this, SLOT (handleAddProfilePress()));
+
+    // All available Session Frequency Ranges (can be used when the user wants to create a new Session in the User Designated group)
+    sessionFreqRanges = {"MET", "Sub-Delta", "Delta", "Theta"};
+
+    // All available CES Modes (can be used when the user wants to create a new Session in the User Designated group)
+    cesModes = {"Short-Pulse", "50% Duty Cycle"};
+
+    // Create the sessions for the 20-min session group
+    for (int i = 0; i < 4; i++) {
+        if (i == 1) {
+            Session session(i, sessionFreqRanges[i], cesModes[1], 20);
+            sessionGroup1.push_back(session);
+        }
+        else {
+            Session session(i, sessionFreqRanges[i], cesModes[0], 20);
+            sessionGroup1.push_back(session);
+        }
+    }
+
+    // Create the sessions for the 45-min session group
+    for (int i = 0; i < 4; i++) {
+        if (i == 1) {
+            Session session(i, sessionFreqRanges[i], cesModes[1], 45);
+            sessionGroup2.push_back(session);
+        }
+        else {
+            Session session(i, sessionFreqRanges[i], cesModes[0], 45);
+            sessionGroup2.push_back(session);
+        }
+    }
+
+    // Create a list containing all three Session Groups
+    sessionGroupList = {sessionGroup1, sessionGroup2, sessionGroup3};
+
+    // Indexes used to cycle through different Session Groups and Sessions when the user pressed the Power or Up and Down buttons
+    curSessionGroupIndex = 0;
+    curSessionIndex = 0;
+
+    // Default intensity Level
+    curIntensity = 4;
+
+    // Default battery Level
+    batteryLevel = 100;
+
+    // Test: sessionGroupList[group-index][session-index]
+    qInfo(sessionGroupList[0][3].getFrequency().c_str());
 }
 
 MainWindow::~MainWindow()
@@ -39,7 +93,7 @@ void MainWindow:: turnOn() {
     ui->upButton->setEnabled(true);
     ui->downButton->setEnabled(true);
     ui->pwrButton->setEnabled(true);
-    ui->checkButton->setEnabled(true);
+    ui->selectButton->setEnabled(true);
     ui->tabWidget->setEnabled(true);
     powerStatus = !powerStatus;
 
@@ -50,7 +104,7 @@ void MainWindow:: turnOff() {
     ui->upButton->setEnabled(false);
     ui->downButton->setEnabled(false);
     ui->pwrButton->setEnabled(false);
-    ui->checkButton->setEnabled(false);
+    ui->selectButton->setEnabled(false);
     ui->tabWidget->setEnabled(false);
     powerStatus = !powerStatus;
 
@@ -65,7 +119,19 @@ void MainWindow:: standby() {
 }
 
 void MainWindow:: handlePowerPress() {
-    // DO SOMETHING
+    // Cycle through the sessionGroupList using the index
+    // If the end of the array is reached, set index back to 0
+    if (curSessionGroupIndex == 2) {
+        curSessionGroupIndex = 0;
+    }
+    // Else, increment the index to reach the next Session Group
+    else {
+        curSessionGroupIndex += 1;
+    }
+
+    updateSessionsMenu();
+
+    qInfo("%i", curSessionGroupIndex);
 }
 
 void MainWindow:: updateSessionsMenu() {
@@ -152,14 +218,8 @@ void MainWindow:: signIn() {
     // DO SOMETHING
 }
 
-/* SLOTS */
-void MainWindow::on_pwrButton_clicked()
+void MainWindow::handleHoldPress()
 {
-    //doSomething
-}
-void MainWindow::on_holdButton_clicked()
-{
-
     if (powerStatus == true) {
         turnOff();
     }
@@ -169,27 +229,12 @@ void MainWindow::on_holdButton_clicked()
     }
 }
 
-void MainWindow::on_upButton_clicked()
-{
-    cout<< "Up button pressed"<< endl;  // testing if button disabled on power off
-}
-
-void MainWindow::on_downButton_clicked()
+void MainWindow::handleAddProfilePress()
 {
     //doSomething
 }
 
-void MainWindow::on_checkButton_clicked()
-{
-    //doSomething
-}
-
-void MainWindow::on_addProfileButton_clicked()
-{
-    //doSomething
-}
-
-void MainWindow::on_startSessionButton_clicked()
+void MainWindow::handleStartSessionPress()
 {
     //doSomething when user selects profile
 }
