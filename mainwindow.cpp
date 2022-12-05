@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 
+
 using namespace std;
 
 MainWindow::MainWindow(QWidget *parent)
@@ -21,8 +22,22 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->upButton, SIGNAL(released()), this, SLOT (handleUpPress()));
     connect(ui->downButton, SIGNAL(released()), this, SLOT (handleDownPress()));
     connect(ui->selectButton, SIGNAL(released()), this, SLOT (handleSelectPress()));
-    connect(ui->startSessionButton, SIGNAL(released()), this, SLOT (handleStartSessionPress()));
     connect(ui->addProfileButton, SIGNAL(released()), this, SLOT (handleAddProfilePress()));
+
+
+
+
+    //Adding Default Guest Profile
+    UserProfile* guest;
+    QString g = "Guest";
+    //Create user
+    createUser(g.toStdString(), &guest);
+    users.push_back(guest);
+
+    cout <<"Profile: " << guest->getUsername() << " Added." <<endl;
+
+    //Add profile to profileSelector
+    updateView();
 
     // Hover feature
     ui->pwrButton->installEventFilter(this);
@@ -30,6 +45,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->upButton->installEventFilter(this);
     ui->downButton->installEventFilter(this);
     ui->selectButton->installEventFilter(this);
+
 
     // All available Session Frequency Ranges (can be used when the user wants to create a new Session in the User Designated group)
     sessionFreqRanges = {"MET", "Sub-Delta", "Delta", "Theta"};
@@ -89,29 +105,114 @@ void MainWindow::greenLightOn(){
 }
 
 void MainWindow::greenLightOff(){
-    ui->pwrLight->setStyleSheet("background-color : black");
+    ui->pwrLight->setStyleSheet("color: black");
     ui->pwrLight->repaint();
+}
+//#define YELLOW "#e5e400"
+//#define RED "#fd0002"
+//#define GREEN "#00ed00"
+//#define BLUE "#80c3bf"
+void MainWindow::oneLightOn(){
+    ui->oneLabel->setStyleSheet("color: #00ed00");
+    ui->oneLabel->repaint();
+}
+
+void MainWindow::oneLightOff(){
+    ui->oneLabel->setStyleSheet("color: grey");
+    ui->oneLabel->repaint();
+}
+
+void MainWindow::twoLightOn(){
+    ui->twoLabel->setStyleSheet("color: #00ed00");
+    ui->twoLabel->repaint();
+}
+
+void MainWindow::twoLightOff(){
+    ui->twoLabel->setStyleSheet("color: grey");
+    ui->twoLabel->repaint();
+}
+
+void MainWindow::threeLightOn(){
+    ui->threeLabel->setStyleSheet("color: #00ed00");
+    ui->threeLabel->repaint();
+}
+
+void MainWindow::threeLightOff(){
+    ui->threeLabel->setStyleSheet("color: grey");
+    ui->threeLabel->repaint();
+}
+
+void MainWindow::fourLightOn(){
+    ui->fourLabel->setStyleSheet("color: #e5e400");
+    ui->fourLabel->repaint();
+}
+
+void MainWindow::fourLightOff(){
+    ui->fourLabel->setStyleSheet("color: grey");
+    ui->fourLabel->repaint();
+}
+
+void MainWindow::fiveLightOn(){
+    ui->fiveLabel->setStyleSheet("color: #e5e400");
+    ui->fiveLabel->repaint();
+}
+
+void MainWindow::fiveLightOff(){
+    ui->fiveLabel->setStyleSheet("color: grey");
+    ui->fiveLabel->repaint();
+}
+
+void MainWindow::sixLightOn(){
+    ui->sixLabel->setStyleSheet("color: #e5e400");
+    ui->sixLabel->repaint();
+}
+
+void MainWindow::sixLightOff(){
+    ui->sixLabel->setStyleSheet("color: grey");
+    ui->sixLabel->repaint();
+}
+
+void MainWindow::sevenLightOn(){
+    ui->sevenLabel->setStyleSheet("color: #fd0002");
+    ui->sevenLabel->repaint();
+}
+
+void MainWindow::sevenLightOff(){
+    ui->sevenLabel->setStyleSheet("color: grey");
+    ui->sevenLabel->repaint();
+}
+
+void MainWindow::eightLightOn(){
+    ui->eightLabel->setStyleSheet("color: #fd0002");
+    ui->eightLabel->repaint();
+}
+
+void MainWindow::eightLightOff(){
+    ui->eightLabel->setStyleSheet("color: grey");
+    ui->eightLabel->repaint();
 }
 
 void MainWindow:: turnOn() {
-    // DO SOMETHING
+
     ui->upButton->setEnabled(true);
     ui->downButton->setEnabled(true);
     ui->pwrButton->setEnabled(true);
     ui->selectButton->setEnabled(true);
     ui->tabWidget->setEnabled(true);
     powerStatus = !powerStatus;
+    greenLightOn();
+    displayBatteryLevel();
 
 }
 void MainWindow:: turnOff() {
 
-    // DO SOMETHING
     ui->upButton->setEnabled(false);
     ui->downButton->setEnabled(false);
     ui->pwrButton->setEnabled(false);
     ui->selectButton->setEnabled(false);
     ui->tabWidget->setEnabled(false);
     powerStatus = !powerStatus;
+    greenLightOff();
 
 }
 
@@ -159,6 +260,9 @@ void MainWindow:: changeButtonStyles(QPushButton* btn, QEvent* event){
 
 void MainWindow:: promptSignIn() {
     // DO SOMETHING
+    //Force users to make or select profile. Or select Guest
+
+    //DEPRECATED
 }
 
 void MainWindow:: standby() {
@@ -195,6 +299,7 @@ void MainWindow:: handleUpPress() {
 
 void MainWindow:: handleSelectPress() {
     // DO SOMETHING
+    //Either start session or choose behaviour depending on mode
 }
 
 void MainWindow:: startSession() {
@@ -202,7 +307,41 @@ void MainWindow:: startSession() {
 }
 
 void MainWindow:: displayBatteryLevel() {
-    // DO SOMETHING
+
+    if (batteryLevel > 50) {
+
+        for (int i =0; i < 2 ; ++i) {
+            oneLightOn();
+            twoLightOn();
+            threeLightOn();
+            usleep(100000 * 2); //Sleeps for two seconds
+            oneLightOff();
+            twoLightOff();
+            threeLightOff();
+            usleep(100000 * 2); //Sleeps for two seconds
+            cout << "Battery Level is at: "<<batteryLevel<<endl;
+        }
+    } else if (batteryLevel > 25) {
+
+        for (int i =0; i < 2 ; ++i) {
+            oneLightOn();
+            twoLightOn();
+            usleep(100000 * 2); //Sleeps for two seconds
+            oneLightOff();
+            twoLightOff();
+            usleep(100000 * 2); //Sleeps for two seconds
+        }
+        cout << "Battery Level is at: "<< batteryLevel << endl;
+    } else if (batteryLevel >10) {
+        for (int i =0; i < 2 ; ++i) {
+            oneLightOn();
+            usleep(100000 * 2); //Sleeps for two seconds
+            oneLightOff();
+            usleep(100000 * 2); //Sleeps for two seconds
+        }
+        cout << "Battery Level is at: "<<batteryLevel<<endl;
+        handleBatteryLow(); //End session if running, and continue blinking for a short period while ending session
+    }
 }
 
 void MainWindow:: updateBatteryLevel() {
@@ -210,16 +349,76 @@ void MainWindow:: updateBatteryLevel() {
 }
 
 void MainWindow:: handleBatteryLow() {
-    // DO SOMETHING
+
+
+    //End session if session running, if during a session continuously keep calling the function///Continue blinking as well while ending session
 }
 
 void MainWindow:: startConnectionTest() {
     // DO SOMETHING
+    //Display connection,
 }
 
-void MainWindow:: displayConnection() {
+void MainWindow:: displayConnection(int connectionQuality) {
     // DO SOMETHING
+    //call a hlper function based on the given connection
+
+    if (connectionQuality == 0 ) { //No connection
+        noConnection(); //Will blink and return to safe mode, and then restart test with new connection
+
+    } else if(connectionQuality == 1) { //"Okay" Connection
+        //display connection and end connection test
+        okayConnection();
+
+    } else if (connectionQuality == 2) { // "Solid" connection
+        //display connection and end
+        solidConnection();
+    }
+
+
 }
+
+void MainWindow::okayConnection(){
+
+    for (int i =0; i < 4 ; ++i) {
+        fourLightOn();
+        fiveLightOn();
+        sixLightOn();
+        usleep(100000 * 2); //Sleeps for two seconds
+        fourLightOff();
+        fiveLightOff();
+        sixLightOff();
+        usleep(100000 * 2); //Sleeps for two seconds
+    }
+}
+
+void MainWindow::noConnection(){
+
+    for (int i =0; i < 4 ; ++i) {
+        sevenLightOn();
+        eightLightOn();
+        usleep(100000 * 2); //Sleeps for two seconds
+        sevenLightOff();
+        eightLightOff();
+        usleep(100000 * 2); //Sleeps for two seconds
+    }
+    //Scroll graph up and down to show unit returning to normal voltage (15-20 seconds)
+    //to be continued
+}
+
+void MainWindow::solidConnection(){
+    for (int i =0; i < 4 ; ++i) {
+        oneLightOn();
+        twoLightOn();
+        threeLightOn();
+        usleep(100000 * 2); //Sleeps for two seconds
+        oneLightOff();
+        twoLightOff();
+        threeLightOff();
+        usleep(100000 * 2); //Sleeps for two seconds
+    }
+}
+
 
 void MainWindow:: connectionInvalid() {
     // DO SOMETHING
@@ -253,8 +452,10 @@ void MainWindow:: recordTherapy() {
     // DO SOMETHING
 }
 
-void MainWindow:: createUser() {
-    // DO SOMETHING
+void MainWindow:: createUser(string un, UserProfile** p) {
+    //Create a profile to the profile selector
+    UserProfile* newProfile = new UserProfile(un);
+    *p = newProfile;
 }
 
 void MainWindow:: selectUser() {
@@ -278,13 +479,28 @@ void MainWindow::handleHoldPress()
 
 void MainWindow::handleAddProfilePress()
 {
-    //doSomething
+    UserProfile* newUser;
+    //Create user
+    createUser(ui->nameInput->text().toStdString(), &newUser);
+    users.push_back(newUser);
+
+    cout <<"Profile: " << newUser->getUsername() << " Added." <<endl;
+    //Add profile to profileSelector
+    updateView();
 }
 
-void MainWindow::handleStartSessionPress()
-{
-    //doSomething when user selects profile
+void MainWindow::updateView() {
+
+    ui->profileSelector->clear(); //Clears Previous Values
+
+    for (int i = 0; i < int(users.size()); ++i) {
+        string temp = users.at(i)->getUsername();
+        ui->profileSelector->addItem(QString::fromStdString(temp));
+    }
+
 }
+
+
 /* END OF SLOTS */
 
 

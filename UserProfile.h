@@ -17,6 +17,9 @@ class UserProfile {
         UserProfile(string un);
         // Add a new record to the savedRecords list
         void addRecord(Record r);
+
+        //getters
+        string getUsername();
 };
 
 #endif // USER_PROFILE

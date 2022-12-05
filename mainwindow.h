@@ -6,10 +6,13 @@
 #include <string>
 #include <list>
 #include <iostream>
-
+#include "UserProfile.h"
+#include <unistd.h>
 #include "Session.h"
 #include "ui_mainwindow.h"
 
+
+using namespace std;
 /* Constants for color scheme sampled from device for altering color outside of design mode */
 #define YELLOW "#e5e400"
 #define RED "#fd0002"
@@ -50,6 +53,7 @@ private:
     vector<vector<Session>> sessionGroupList;
     vector<string> sessionFreqRanges;
     vector<string> cesModes;
+    vector<UserProfile*> users;
 
     /* Some helper functions that can be cut and paste later into functions to do some operations on the UI
      * Not sure about what conditions need to be satisfied to do a lot of these so I am putting them as helpers for now
@@ -70,7 +74,7 @@ private:
     void updateBatteryLevel(); // updates the batterylevel variable after
     void handleBatteryLow(); // handles the battery level low extension
     void startConnectionTest(); // to check device connection before session start
-    void displayConnection(); // displays connection strength on UI (on the numbers 1-4 bar)
+    void displayConnection(int connectionQuality); // displays connection strength on UI (on the numbers 1-4 bar)
     void connectionInvalid(); // handles the case where connection status is low
     void connectionValid(); // confirms that connection is valid so session can start
     void endConnectionTest(); // ends the connection test
@@ -79,14 +83,34 @@ private:
     void savePreferences(); // saves the user's preferred intensity (where?)
     void promptToRecord(); // post session, prompts user if they wish to record the just completed session
     void recordTherapy(); // records the therapy session information (duration, frequency, type)
-    void createUser(); // handles the new user profile creation
+    void createUser(string un, UserProfile**); // handles the new user profile creation
     void selectUser(); // handles the case where the user selects an existing profile
     void signIn(); // handles user sign-in
+    void updateView(); //Updates user profile list
 
+    void solidConnection();
+    void noConnection();
+    void okayConnection();
 
     //changes the color of the light, can be private later or just cut&paste into different function.
     void greenLightOn(); //turns greenlight on
     void greenLightOff(); //turns the greenlight off
+    void oneLightOn(); // ""
+    void oneLightOff(); // ""
+    void twoLightOn(); // ""
+    void twoLightOff(); // ""
+    void threeLightOn(); // ""
+    void threeLightOff(); // ""
+    void fourLightOn(); // ""
+    void fourLightOff(); // ""
+    void fiveLightOn(); // ""
+    void fiveLightOff(); // ""
+    void sixLightOn(); // ""
+    void sixLightOff(); // ""
+    void sevenLightOn(); // ""
+    void sevenLightOff(); // ""
+    void eightLightOn(); // ""
+    void eightLightOff(); // ""
 
 private slots:
     void handlePowerPress(); // handles the functionality for the power button
@@ -102,7 +126,6 @@ private slots:
     void handleAddProfilePress();
 
     //slot when user selects a profile
-    void handleStartSessionPress();
 
 private:
     Ui::MainWindow *ui;
