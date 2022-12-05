@@ -1,6 +1,4 @@
 #include "mainwindow.h"
-#include "ui_mainwindow.h"
-#include <iostream>
 
 using namespace std;
 
@@ -25,6 +23,13 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->selectButton, SIGNAL(released()), this, SLOT (handleSelectPress()));
     connect(ui->startSessionButton, SIGNAL(released()), this, SLOT (handleStartSessionPress()));
     connect(ui->addProfileButton, SIGNAL(released()), this, SLOT (handleAddProfilePress()));
+
+    // Hover feature
+    ui->pwrButton->installEventFilter(this);
+    ui->holdButton->installEventFilter(this);
+    ui->upButton->installEventFilter(this);
+    ui->downButton->installEventFilter(this);
+    ui->selectButton->installEventFilter(this);
 
     // All available Session Frequency Ranges (can be used when the user wants to create a new Session in the User Designated group)
     sessionFreqRanges = {"MET", "Sub-Delta", "Delta", "Theta"};
@@ -108,6 +113,48 @@ void MainWindow:: turnOff() {
     ui->tabWidget->setEnabled(false);
     powerStatus = !powerStatus;
 
+}
+
+bool MainWindow:: eventFilter(QObject* obj, QEvent* event){
+    if(obj == (QObject*)ui->pwrButton){
+        changeButtonStyles(ui->pwrButton, event);
+    }
+    else if(obj == (QObject*)ui->holdButton){
+        changeButtonStyles(ui->holdButton, event);
+    }
+    else if(obj == (QObject*)ui->upButton){
+        changeButtonStyles(ui->upButton, event);
+    }
+    else if(obj == (QObject*)ui->downButton){
+        changeButtonStyles(ui->downButton, event);
+    }
+    else if(obj == (QObject*)ui->selectButton){
+        changeButtonStyles(ui->selectButton, event);
+    }
+    return QWidget::eventFilter(obj, event);
+}
+
+void MainWindow:: changeButtonStyles(QPushButton* btn, QEvent* event){
+    if(event->type() == QEvent::Enter){
+         btn->setStyleSheet("color: #e5e400;"
+                                      "border: 0.2em solid #e6faf8;"
+                                      "min-height: 3em;"
+                                      "max-height: 3em;"
+                                      "min-width: 3em;"
+                                      "max-width: 3em;"
+                                      "border-radius: 1.5em;");
+
+    }
+    else if(event->type() == QEvent::Leave){
+        btn->setStyleSheet("color: #e5e400;"
+                                     "border: 0.2em solid #80c3bf;"
+                                     "min-height: 3em;"
+                                     "max-height: 3em;"
+                                     "min-width: 3em;"
+                                     "max-width: 3em;"
+                                     "border-radius: 1.5em;");
+
+   }
 }
 
 void MainWindow:: promptSignIn() {

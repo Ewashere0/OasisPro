@@ -2,9 +2,13 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include "SessionGroup.h"
+#include <QPushButton>
 #include <string>
 #include <list>
+#include <iostream>
+
+#include "Session.h"
+#include "ui_mainwindow.h"
 
 /* Constants for color scheme sampled from device for altering color outside of design mode */
 #define YELLOW "#e5e400"
@@ -53,6 +57,9 @@ private:
     
     void turnOn(); // turns on the device by enabling the UI
     void turnOff(); // turns off the device by disabling the UI
+
+    bool eventFilter(QObject* obj, QEvent* event);
+    void changeButtonStyles(QPushButton* btn, QEvent* event);
 
     void promptSignIn(); // opens the sign in prompt for the user
     void standby(); // what does this function do?
