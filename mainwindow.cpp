@@ -179,8 +179,9 @@ void MainWindow::togglePowerStatus() {
         greenLightOn();
         displayBatteryLevel();
         // Light up the default session group and session number icons when turned on
-        groupTwentyMinLightOn();
-        sessionMETLightOn();
+//        groupTwentyMinLightOn();
+//        sessionMETLightOn();
+        updateSessionsMenu();
     }
     else {
         greenLightOff();
