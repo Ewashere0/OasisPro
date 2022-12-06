@@ -42,25 +42,30 @@ private:
     bool powerStatus;    // indicator of power status
     bool inSessionStatus;   // checks whether a session is ongoing
     int curSessionGroupIndex;   // indicates what session group (duration) is selected
-    int curSessionIndex;
+    int curSessionIndex;    // Indicates currently highlighted session type (1 - 4)
     bool signedInStatus;    // checks whether user is signed in
     int batteryLevel;   // indicates the battery level
     int curDuration;    // Indicate the current duration of the chosen session (in mins), based on the chosen session group
     int curIntensity; // indicates the intensity level
-    vector<Session> sessionGroup1; // 20-min group
-    vector<Session> sessionGroup2; // 40-min group
-    vector<Session> sessionGroup3; // user-designated group
-    vector<vector<Session>> sessionGroupList;
     vector<string> sessionFreqRanges;
     vector<string> cesModes;
     vector<UserProfile*> users;
 
+    // Trying to implement sessions without duration attribute, and with pointers
+
+    vector<int> durations;  // available options for duration
+    vector<Session*> sessionTypes; // types of pre-defined sessions available
+
+
+
+
     /* Some helper functions that can be cut and paste later into functions to do some operations on the UI
      * Not sure about what conditions need to be satisfied to do a lot of these so I am putting them as helpers for now
      */
-    
-    void turnOn(); // turns on the device by enabling the UI
-    void turnOff(); // turns off the device by disabling the UI
+
+    void togglePowerStatus(); // changes the power status (ON/OFF) and the UI accordingly
+
+    void toggleButtonState(bool state); // enables/disables the buttons, except for holdButton (always enabled)
 
     bool eventFilter(QObject* obj, QEvent* event);
     void changeButtonStyles(QPushButton* btn, QEvent* event);

@@ -7,14 +7,10 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
+    // Setting initial state of UI
     powerStatus = false;
     ui->setupUi(this);
-    ui->holdButton->setEnabled(true);
-    ui->upButton->setEnabled(false);
-    ui->downButton->setEnabled(false);
-    ui->pwrButton->setEnabled(false);
-    ui->selectButton->setEnabled(false);
-    ui->tabWidget->setEnabled(false);
+    toggleButtonState(powerStatus);
 
     // Connect buttons to slot functions
     connect(ui->pwrButton, SIGNAL(released()), this, SLOT (handlePowerPress()));
@@ -53,36 +49,32 @@ MainWindow::MainWindow(QWidget *parent)
     // All available CES Modes (can be used when the user wants to create a new Session in the User Designated group)
     cesModes = {"Short-Pulse", "50% Duty Cycle"};
 
-    // Create the sessions for the 20-min session group
+
+
+
+
+
+    // All available Session Durations ('0' can be overriden when the user wants to create a new Session in the User Designated group)
+    durations = {20, 45, 0};
+
+    // Create the pre-defined sessions
     for (int i = 0; i < 4; i++) {
         if (i == 1) {
-            Session session(i, sessionFreqRanges[i], cesModes[1], 20);
-            sessionGroup1.push_back(session);
+            Session* session = new Session(i, sessionFreqRanges[i], cesModes[1]);
+            sessionTypes.push_back(session);
         }
         else {
-            Session session(i, sessionFreqRanges[i], cesModes[0], 20);
-            sessionGroup1.push_back(session);
+            Session* session = new Session(i, sessionFreqRanges[i], cesModes[0]);
+            sessionTypes.push_back(session);
         }
     }
-
-    // Create the sessions for the 45-min session group
-    for (int i = 0; i < 4; i++) {
-        if (i == 1) {
-            Session session(i, sessionFreqRanges[i], cesModes[1], 45);
-            sessionGroup2.push_back(session);
-        }
-        else {
-            Session session(i, sessionFreqRanges[i], cesModes[0], 45);
-            sessionGroup2.push_back(session);
-        }
-    }
-
-    // Create a list containing all three Session Groups
-    sessionGroupList = {sessionGroup1, sessionGroup2, sessionGroup3};
 
     // Indexes used to cycle through different Session Groups and Sessions when the user pressed the Power or Up and Down buttons
     curSessionGroupIndex = 0;
     curSessionIndex = 0;
+
+    // Setting current duration according to current session group selected
+    curDuration = durations[curSessionGroupIndex];
 
     // Default intensity Level
     curIntensity = 4;
@@ -90,24 +82,19 @@ MainWindow::MainWindow(QWidget *parent)
     // Default battery Level
     batteryLevel = 100;
 
-    // Test: sessionGroupList[group-index][session-index]
-    qInfo(sessionGroupList[0][3].getFrequency().c_str());
+    // Test: sessionTypes[index]
+    qInfo("%s", sessionTypes[2]->getFrequency().c_str());
 }
 
 MainWindow::~MainWindow()
 {
+    for (int i = 0; i < sessionTypes.size(); i++) {
+        delete sessionTypes[i];
+    }
+
     delete ui;
 }
 
-void MainWindow::greenLightOn(){
-    ui->pwrLight->setStyleSheet("background-color: #00ed00");
-    ui->pwrLight->repaint();
-}
-
-void MainWindow::greenLightOff(){
-    ui->pwrLight->setStyleSheet("color: black");
-    ui->pwrLight->repaint();
-}
 //#define YELLOW "#e5e400"
 //#define RED "#fd0002"
 //#define GREEN "#00ed00"
@@ -192,28 +179,34 @@ void MainWindow::eightLightOff(){
     ui->eightLabel->repaint();
 }
 
-void MainWindow:: turnOn() {
-
-    ui->upButton->setEnabled(true);
-    ui->downButton->setEnabled(true);
-    ui->pwrButton->setEnabled(true);
-    ui->selectButton->setEnabled(true);
-    ui->tabWidget->setEnabled(true);
+void MainWindow::togglePowerStatus() {
     powerStatus = !powerStatus;
-    greenLightOn();
-    displayBatteryLevel();
-
+    toggleButtonState(powerStatus);
+    if (powerStatus) {
+        greenLightOn();
+        displayBatteryLevel();
+    }
+    else {
+        greenLightOff();
+    }
 }
-void MainWindow:: turnOff() {
 
-    ui->upButton->setEnabled(false);
-    ui->downButton->setEnabled(false);
-    ui->pwrButton->setEnabled(false);
-    ui->selectButton->setEnabled(false);
-    ui->tabWidget->setEnabled(false);
-    powerStatus = !powerStatus;
-    greenLightOff();
+void MainWindow::toggleButtonState(bool state) {
+    ui->upButton->setEnabled(state);
+    ui->downButton->setEnabled(state);
+    ui->pwrButton->setEnabled(state);
+    ui->selectButton->setEnabled(state);
+    ui->tabWidget->setEnabled(state);
+}
 
+void MainWindow::greenLightOn(){
+    ui->pwrLight->setStyleSheet("background-color: #00ed00");
+    ui->pwrLight->repaint();
+}
+
+void MainWindow::greenLightOff(){
+    ui->pwrLight->setStyleSheet("color: black");
+    ui->pwrLight->repaint();
 }
 
 bool MainWindow:: eventFilter(QObject* obj, QEvent* event){
@@ -272,12 +265,15 @@ void MainWindow:: standby() {
 void MainWindow:: handlePowerPress() {
     // Cycle through the sessionGroupList using the index
     // If the end of the array is reached, set index back to 0
+
     if (curSessionGroupIndex == 2) {
         curSessionGroupIndex = 0;
+        curDuration = durations[curSessionGroupIndex]; // Set current duration accordingly
     }
     // Else, increment the index to reach the next Session Group
     else {
         curSessionGroupIndex += 1;
+        curDuration = durations[curSessionGroupIndex]; // Set current duration accordingly
     }
 
     updateSessionsMenu();
@@ -361,7 +357,7 @@ void MainWindow:: startConnectionTest() {
 
 void MainWindow:: displayConnection(int connectionQuality) {
     // DO SOMETHING
-    //call a hlper function based on the given connection
+    //call a helper function based on the given connection
 
     if (connectionQuality == 0 ) { //No connection
         noConnection(); //Will blink and return to safe mode, and then restart test with new connection
@@ -468,13 +464,7 @@ void MainWindow:: signIn() {
 
 void MainWindow::handleHoldPress()
 {
-    if (powerStatus == true) {
-        turnOff();
-    }
-
-    else {
-        turnOn();
-    }
+    togglePowerStatus();
 }
 
 void MainWindow::handleAddProfilePress()
