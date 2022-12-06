@@ -54,7 +54,7 @@ private:
     // Trying to implement sessions without duration attribute, and with pointers
 
     vector<int> durations;  // available options for duration
-    vector<Session*> sessionTypes; // types of pre-defined sessions available
+    vector<Session*> sessionTypes; // a list of all session types
 
 
 
@@ -116,6 +116,18 @@ private:
     void sevenLightOff(); // ""
     void eightLightOn(); // ""
     void eightLightOff(); // ""
+
+    // Function to change colors for Session Group Icons when cycling through the session groups
+    void groupTwentyMinLightOn();
+    void groupFortyFiveMinLightOn();
+    void groupUserDesignatedLightOn();
+    void allSessionGroupLightOff();
+    // Functions to change colors for the Session Icons (i.e. Session Frequency Types Icons) when cycling through the sessions
+    void sessionMETLightOn();
+    void sessionSDeltaLightOn();
+    void sessionDeltaLightOn();
+    void sessionThetaLightOn();
+    void allSessionLightOff();
 
 private slots:
     void handlePowerPress(); // handles the functionality for the power button

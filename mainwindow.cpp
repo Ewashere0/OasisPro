@@ -20,9 +20,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->selectButton, SIGNAL(released()), this, SLOT (handleSelectPress()));
     connect(ui->addProfileButton, SIGNAL(released()), this, SLOT (handleAddProfilePress()));
 
-
-
-
     //Adding Default Guest Profile
     UserProfile* guest;
     QString g = "Guest";
@@ -49,15 +46,12 @@ MainWindow::MainWindow(QWidget *parent)
     // All available CES Modes (can be used when the user wants to create a new Session in the User Designated group)
     cesModes = {"Short-Pulse", "50% Duty Cycle"};
 
-
-
-
-
-
     // All available Session Durations ('0' can be overriden when the user wants to create a new Session in the User Designated group)
+    // Since the only difference between the session groups is duration, cycling through the durations will be equivalent to cycling
+    // through the session groups
     durations = {20, 45, 0};
 
-    // Create the pre-defined sessions
+    // Create the 4 pre-defined sessions, storing them inside a Session Group
     for (int i = 0; i < 4; i++) {
         if (i == 1) {
             Session* session = new Session(i, sessionFreqRanges[i], cesModes[1]);
@@ -81,16 +75,15 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Default battery Level
     batteryLevel = 100;
-
-    // Test: sessionTypes[index]
-    qInfo("%s", sessionTypes[2]->getFrequency().c_str());
 }
 
 MainWindow::~MainWindow()
 {
-    for (int i = 0; i < sessionTypes.size(); i++) {
-        delete sessionTypes[i];
-    }
+// This line is commented out, unsure of its purpose. The sessionTypes is reset automatically every time the program is run, so why do
+// we need to manually remove each item in the sessionTypes ??? - Henry
+//    for (int i = 0; i < sessionTypes.size(); i++) {
+//        delete sessionTypes[i];
+//    }
 
     delete ui;
 }
@@ -185,9 +178,16 @@ void MainWindow::togglePowerStatus() {
     if (powerStatus) {
         greenLightOn();
         displayBatteryLevel();
+        // Light up the default session group and session number icons when turned on
+//        groupTwentyMinLightOn();
+//        sessionMETLightOn();
+        updateSessionsMenu();
     }
     else {
         greenLightOff();
+        // Turn off all session groups and session numbers icons when turned off
+        allSessionGroupLightOff();
+        allSessionLightOff();
     }
 }
 
@@ -263,34 +263,137 @@ void MainWindow:: standby() {
 }
 
 void MainWindow:: handlePowerPress() {
-    // Cycle through the sessionGroupList using the index
+    // Cycle through the session groups, since the only difference between the groups is duration, only the durations vector will be cycled through
     // If the end of the array is reached, set index back to 0
-
     if (curSessionGroupIndex == 2) {
         curSessionGroupIndex = 0;
         curDuration = durations[curSessionGroupIndex]; // Set current duration accordingly
     }
-    // Else, increment the index to reach the next Session Group
+    // Else, increment the index to reach the next duration, which indicates the next session group
     else {
         curSessionGroupIndex += 1;
         curDuration = durations[curSessionGroupIndex]; // Set current duration accordingly
     }
 
+    // If the User Designated Group is chosen, allow the user to choose a custom duration, session frequency type and ces mode
+    if (curSessionGroupIndex == 2) {
+       // DO SOMETHING
+    }
+
+    // Update the UI to reflect changes
     updateSessionsMenu();
 
-    qInfo("%i", curSessionGroupIndex);
+    qInfo("Session Group: %i", curSessionGroupIndex);
 }
 
 void MainWindow:: updateSessionsMenu() {
-    // DO SOMETHING
+    // Update UI when cycling through session groups
+    allSessionGroupLightOff();
+    if (curSessionGroupIndex == 0) {groupTwentyMinLightOn();}
+    else if (curSessionGroupIndex == 1) {groupFortyFiveMinLightOn();}
+    else if (curSessionGroupIndex == 2) {groupUserDesignatedLightOn();}
+    // Update UI when cycling through sessions (i.e. session frequency types)
+    allSessionLightOff();
+    if (curSessionIndex == 0) {sessionMETLightOn();}
+    else if (curSessionIndex == 1) {sessionSDeltaLightOn();}
+    else if (curSessionIndex == 2) {sessionDeltaLightOn();}
+    else if (curSessionIndex == 3) {sessionThetaLightOn();}
 }
 
+// Functions for Session Group and Session Numbers UI changes:
+void MainWindow::groupTwentyMinLightOn() {
+    ui->twentyMinLabel->setStyleSheet("color: #e5e400;");
+    ui->twentyMinLabel->repaint();
+}
+
+void MainWindow::groupFortyFiveMinLightOn() {
+    ui->fortyFiveMinLabel->setStyleSheet("color: #e5e400");
+    ui->fortyFiveMinLabel->repaint();
+}
+
+void MainWindow::groupUserDesignatedLightOn() {
+    ui->userDesignatedLabel->setStyleSheet("color: #e5e400;");
+    ui->userDesignatedLabel->repaint();
+}
+
+void MainWindow::allSessionGroupLightOff() {
+    ui->twentyMinLabel->setStyleSheet("color: grey");
+    ui->twentyMinLabel->repaint();
+
+    ui->fortyFiveMinLabel->setStyleSheet("color: grey");
+    ui->fortyFiveMinLabel->repaint();
+
+    ui->userDesignatedLabel->setStyleSheet("color: grey");
+    ui->userDesignatedLabel->repaint();
+}
+
+void MainWindow::sessionMETLightOn() {
+    ui->METLabel->setStyleSheet("color: #00ed00");
+    ui->METLabel->repaint();
+}
+
+void MainWindow::sessionSDeltaLightOn() {
+    ui->sDeltaLabel->setStyleSheet("color: #00ed00");
+    ui->sDeltaLabel->repaint();
+}
+
+void MainWindow::sessionDeltaLightOn() {
+    ui->deltaLabel->setStyleSheet("color: #00ed00");
+    ui->deltaLabel->repaint();
+}
+
+void MainWindow::sessionThetaLightOn() {
+    ui->thetaLabel->setStyleSheet("color: #00ed00");
+    ui->thetaLabel->repaint();
+}
+
+void MainWindow::allSessionLightOff() {
+    ui->METLabel->setStyleSheet("color: grey");
+    ui->METLabel->repaint();
+
+    ui->sDeltaLabel->setStyleSheet("color: grey");
+    ui->sDeltaLabel->repaint();
+
+    ui->deltaLabel->setStyleSheet("color: grey");
+    ui->deltaLabel->repaint();
+
+    ui->thetaLabel->setStyleSheet("color: grey");
+    ui->thetaLabel->repaint();
+}
+/*/////////////////////////////////////////////////////////////*/
+
 void MainWindow:: handleDownPress() {
-    // DO SOMETHING
+    // Cycle through the sessions, since sessions and session frequency types are one and the same, we will cycle through the session
+    // frequency types icons
+    // If index = 0 is reached, reset index back to 3
+    if (curSessionIndex == 0) {
+        curSessionIndex = 3;
+    }
+    // Else, decrement the index to reach the next session
+    else {
+        curSessionIndex -= 1;
+    }
+    // Update the UI to reflect changes
+    updateSessionsMenu();
+
+    qInfo("Session: %i", curSessionIndex);
 }
 
 void MainWindow:: handleUpPress() {
-    // DO SOMETHING
+    // Cycle through the sessions, since sessions and session frequency types are one and the same, we will cycle through the session
+    // frequency types icons
+    // If index = 3 is reached, reset index back to 0
+    if (curSessionIndex == 3) {
+        curSessionIndex = 0;
+    }
+    // Else, increment the index to reach the next session
+    else {
+        curSessionIndex += 1;
+    }
+    // Update the UI to reflect changes
+    updateSessionsMenu();
+
+    qInfo("Session: %i", curSessionIndex);
 }
 
 void MainWindow:: handleSelectPress() {
@@ -300,6 +403,9 @@ void MainWindow:: handleSelectPress() {
 
 void MainWindow:: startSession() {
     // DO SOMETHING
+    // Use curSessionGroupIndex for the duration vector to get the chosen Duration
+    // Use curSessionIndex for the sessionTypes vector to get the chosen Session object, which will contain the chosen
+    // session frequency type and CES mode
 }
 
 void MainWindow:: displayBatteryLevel() {
