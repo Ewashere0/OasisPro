@@ -92,85 +92,36 @@ MainWindow::~MainWindow()
 //#define RED "#fd0002"
 //#define GREEN "#00ed00"
 //#define BLUE "#80c3bf"
-void MainWindow::oneLightOn(){
-    ui->oneLabel->setStyleSheet("color: #00ed00");
-    ui->oneLabel->repaint();
+
+void MainWindow::pwrLightOn(int index){
+    switch(index){
+        case 1: ui->oneLabel->setStyleSheet("color: #00ed00");break;
+        case 2: ui->twoLabel->setStyleSheet("color: #00ed00");break;
+        case 3: ui->threeLabel->setStyleSheet("color: #00ed00");break;
+        case 4: ui->fourLabel->setStyleSheet("color: #e5e400");break;
+        case 5: ui->fiveLabel->setStyleSheet("color: #e5e400");break;
+        case 6: ui->sixLabel->setStyleSheet("color: #e5e400");break;
+        case 7: ui->sevenLabel->setStyleSheet("color: #fd0002");break;
+        case 8: ui->eightLabel->setStyleSheet("color: #fd0002");break;
+    }
+    ui->pwrLvlSplitter->repaint();
 }
 
-void MainWindow::oneLightOff(){
-    ui->oneLabel->setStyleSheet("color: grey");
-    ui->oneLabel->repaint();
+void MainWindow::pwrLightOff(int index){
+    switch(index){
+        case 1: ui->oneLabel->setStyleSheet("color: grey");break;
+        case 2: ui->twoLabel->setStyleSheet("color: grey");break;
+        case 3: ui->threeLabel->setStyleSheet("color: grey");break;
+        case 4: ui->fourLabel->setStyleSheet("color: grey");break;
+        case 5: ui->fiveLabel->setStyleSheet("color: grey");break;
+        case 6: ui->sixLabel->setStyleSheet("color: grey");break;
+        case 7: ui->sevenLabel->setStyleSheet("color: grey");break;
+        case 8: ui->eightLabel->setStyleSheet("color: grey");break;
+    }
+    ui->pwrLvlSplitter->repaint();
 }
 
-void MainWindow::twoLightOn(){
-    ui->twoLabel->setStyleSheet("color: #00ed00");
-    ui->twoLabel->repaint();
-}
 
-void MainWindow::twoLightOff(){
-    ui->twoLabel->setStyleSheet("color: grey");
-    ui->twoLabel->repaint();
-}
-
-void MainWindow::threeLightOn(){
-    ui->threeLabel->setStyleSheet("color: #00ed00");
-    ui->threeLabel->repaint();
-}
-
-void MainWindow::threeLightOff(){
-    ui->threeLabel->setStyleSheet("color: grey");
-    ui->threeLabel->repaint();
-}
-
-void MainWindow::fourLightOn(){
-    ui->fourLabel->setStyleSheet("color: #e5e400");
-    ui->fourLabel->repaint();
-}
-
-void MainWindow::fourLightOff(){
-    ui->fourLabel->setStyleSheet("color: grey");
-    ui->fourLabel->repaint();
-}
-
-void MainWindow::fiveLightOn(){
-    ui->fiveLabel->setStyleSheet("color: #e5e400");
-    ui->fiveLabel->repaint();
-}
-
-void MainWindow::fiveLightOff(){
-    ui->fiveLabel->setStyleSheet("color: grey");
-    ui->fiveLabel->repaint();
-}
-
-void MainWindow::sixLightOn(){
-    ui->sixLabel->setStyleSheet("color: #e5e400");
-    ui->sixLabel->repaint();
-}
-
-void MainWindow::sixLightOff(){
-    ui->sixLabel->setStyleSheet("color: grey");
-    ui->sixLabel->repaint();
-}
-
-void MainWindow::sevenLightOn(){
-    ui->sevenLabel->setStyleSheet("color: #fd0002");
-    ui->sevenLabel->repaint();
-}
-
-void MainWindow::sevenLightOff(){
-    ui->sevenLabel->setStyleSheet("color: grey");
-    ui->sevenLabel->repaint();
-}
-
-void MainWindow::eightLightOn(){
-    ui->eightLabel->setStyleSheet("color: #fd0002");
-    ui->eightLabel->repaint();
-}
-
-void MainWindow::eightLightOff(){
-    ui->eightLabel->setStyleSheet("color: grey");
-    ui->eightLabel->repaint();
-}
 
 void MainWindow::togglePowerStatus() {
     powerStatus = !powerStatus;
@@ -402,10 +353,14 @@ void MainWindow:: handleSelectPress() {
 }
 
 void MainWindow:: startSession() {
-    // DO SOMETHING
+    Session *s = sessionTypes[curSessionIndex]; //not really sure what to do with the session object
+    //when session is started, will do a timer and on the end of timer, user will be prompted to record.
+    //session time = minutes but in seconds hence the 1000 to convert ms to s.
+    QTimer::singleShot(curDuration*1000,this,&MainWindow::promptToRecord);
     // Use curSessionGroupIndex for the duration vector to get the chosen Duration
     // Use curSessionIndex for the sessionTypes vector to get the chosen Session object, which will contain the chosen
     // session frequency type and CES mode
+
 }
 
 void MainWindow:: displayBatteryLevel() {
@@ -413,32 +368,32 @@ void MainWindow:: displayBatteryLevel() {
     if (batteryLevel > 50) {
 
         for (int i =0; i < 2 ; ++i) {
-            oneLightOn();
-            twoLightOn();
-            threeLightOn();
+            pwrLightOn(1);
+            pwrLightOn(2);
+            pwrLightOn(3);
             usleep(100000 * 2); //Sleeps for two seconds
-            oneLightOff();
-            twoLightOff();
-            threeLightOff();
+            pwrLightOff(1);
+            pwrLightOff(2);
+            pwrLightOff(3);
             usleep(100000 * 2); //Sleeps for two seconds
             cout << "Battery Level is at: "<<batteryLevel<<endl;
         }
     } else if (batteryLevel > 25) {
 
         for (int i =0; i < 2 ; ++i) {
-            oneLightOn();
-            twoLightOn();
+            pwrLightOn(1);
+            pwrLightOn(2);
             usleep(100000 * 2); //Sleeps for two seconds
-            oneLightOff();
-            twoLightOff();
+            pwrLightOff(1);
+            pwrLightOff(2);
             usleep(100000 * 2); //Sleeps for two seconds
         }
         cout << "Battery Level is at: "<< batteryLevel << endl;
     } else if (batteryLevel >10) {
         for (int i =0; i < 2 ; ++i) {
-            oneLightOn();
+            pwrLightOn(1);
             usleep(100000 * 2); //Sleeps for two seconds
-            oneLightOff();
+            pwrLightOff(1);
             usleep(100000 * 2); //Sleeps for two seconds
         }
         cout << "Battery Level is at: "<<batteryLevel<<endl;
@@ -483,13 +438,13 @@ void MainWindow:: displayConnection(int connectionQuality) {
 void MainWindow::okayConnection(){
 
     for (int i =0; i < 4 ; ++i) {
-        fourLightOn();
-        fiveLightOn();
-        sixLightOn();
+        pwrLightOn(4);
+        pwrLightOn(5);
+        pwrLightOn(6);
         usleep(100000 * 2); //Sleeps for two seconds
-        fourLightOff();
-        fiveLightOff();
-        sixLightOff();
+        pwrLightOff(4);
+        pwrLightOff(5);
+        pwrLightOff(6);
         usleep(100000 * 2); //Sleeps for two seconds
     }
 }
@@ -497,11 +452,11 @@ void MainWindow::okayConnection(){
 void MainWindow::noConnection(){
 
     for (int i =0; i < 4 ; ++i) {
-        sevenLightOn();
-        eightLightOn();
+        pwrLightOn(7);
+        pwrLightOn(8);
         usleep(100000 * 2); //Sleeps for two seconds
-        sevenLightOff();
-        eightLightOff();
+        pwrLightOff(7);
+        pwrLightOff(8);
         usleep(100000 * 2); //Sleeps for two seconds
     }
     //Scroll graph up and down to show unit returning to normal voltage (15-20 seconds)
@@ -510,13 +465,13 @@ void MainWindow::noConnection(){
 
 void MainWindow::solidConnection(){
     for (int i =0; i < 4 ; ++i) {
-        oneLightOn();
-        twoLightOn();
-        threeLightOn();
+        pwrLightOn(1);
+        pwrLightOn(2);
+        pwrLightOn(3);
         usleep(100000 * 2); //Sleeps for two seconds
-        oneLightOff();
-        twoLightOff();
-        threeLightOff();
+        pwrLightOff(1);
+        pwrLightOff(2);
+        pwrLightOff(3);
         usleep(100000 * 2); //Sleeps for two seconds
     }
 }

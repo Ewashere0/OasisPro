@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include "Session.h"
 #include "ui_mainwindow.h"
+#include <QTimer>
 
 
 using namespace std;
@@ -58,7 +59,6 @@ private:
 
 
 
-
     /* Some helper functions that can be cut and paste later into functions to do some operations on the UI
      * Not sure about what conditions need to be satisfied to do a lot of these so I am putting them as helpers for now
      */
@@ -97,25 +97,12 @@ private:
     void noConnection();
     void okayConnection();
 
+    void pwrLightOn(int index); //turns the specified power light on
+    void pwrLightOff(int index); //turns the specified power light off
     //changes the color of the light, can be private later or just cut&paste into different function.
     void greenLightOn(); //turns greenlight on
     void greenLightOff(); //turns the greenlight off
-    void oneLightOn(); // ""
-    void oneLightOff(); // ""
-    void twoLightOn(); // ""
-    void twoLightOff(); // ""
-    void threeLightOn(); // ""
-    void threeLightOff(); // ""
-    void fourLightOn(); // ""
-    void fourLightOff(); // ""
-    void fiveLightOn(); // ""
-    void fiveLightOff(); // ""
-    void sixLightOn(); // ""
-    void sixLightOff(); // ""
-    void sevenLightOn(); // ""
-    void sevenLightOff(); // ""
-    void eightLightOn(); // ""
-    void eightLightOff(); // ""
+
 
     // Function to change colors for Session Group Icons when cycling through the session groups
     void groupTwentyMinLightOn();
