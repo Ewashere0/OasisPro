@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QPushButton>
+#include <QElapsedTimer>
 #include <string>
 #include <list>
 #include <iostream>
@@ -53,6 +54,7 @@ private:
 
     QTimer sessionTimer; // timer for session durations;
     QTimer perSecondTimer; // timer which repeats every one second for updating the session timer remaining time
+    QElapsedTimer powerHoldTimer; // timer to calculate time for power button hold
 
     vector<string> sessionFreqRanges;
     vector<string> cesModes;
@@ -92,7 +94,6 @@ private:
     void continueSession(); // continues the session (maybe have a countdown for the duration?)
     void updateIntensity(); // updates the currentIntensity variable according to user input
     void savePreferences(); // saves the user's preferred intensity (where?)
-    //void promptToRecord(); // post session, prompts user if they wish to record the just completed session
     void recordTherapy(); // records the therapy session information (duration, frequency, type)
     void createUser(string un, UserProfile**); // handles the new user profile creation
     void selectUser(); // handles the case where the user selects an existing profile
@@ -126,14 +127,13 @@ private:
 
 private slots:
 
+    void handlePowerHold(); // handles the event where power button is pressed and starts timer
+
     void promptToRecord(); // post session, prompts user if they wish to record the just completed session
 
     void updatePerSecond(); // used to update the displayed value of the session timer per second
 
     void handlePowerPress(); // handles the functionality for the power button
-
-    //slot that determines what to call when the "hold" button is pressed
-    void handleHoldPress();
 
     void handleDownPress(); // handles the down button press for selecting session type
     void handleUpPress(); // handles the up button press for selecting session type

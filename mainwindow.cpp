@@ -10,16 +10,17 @@ MainWindow::MainWindow(QWidget *parent)
     // Setting initial state of UI
     powerStatus = false;
     ui->setupUi(this);
+    ui->pwrButton->setEnabled(true);
     toggleButtonState(powerStatus);
 
     // Connect buttons to slot functions
     connect(ui->pwrButton, SIGNAL(released()), this, SLOT (handlePowerPress()));
-    connect(ui->holdButton, SIGNAL(released()), this, SLOT (handleHoldPress()));
     connect(ui->upButton, SIGNAL(released()), this, SLOT (handleUpPress()));
     connect(ui->downButton, SIGNAL(released()), this, SLOT (handleDownPress()));
     connect(ui->selectButton, SIGNAL(released()), this, SLOT (handleSelectPress()));
     connect(ui->addProfileButton, SIGNAL(released()), this, SLOT (handleAddProfilePress()));
     connect(ui->modeButton, SIGNAL(released()), this, SLOT (handleModePress()));
+    connect(ui->pwrButton, SIGNAL(pressed()), this, SLOT (handlePowerHold()));
 
     // connect session timer to its handler
     connect(&sessionTimer, SIGNAL(timeout()), this, SLOT (promptToRecord()));
@@ -47,7 +48,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Hover feature
     ui->pwrButton->installEventFilter(this);
-    ui->holdButton->installEventFilter(this);
     ui->upButton->installEventFilter(this);
     ui->downButton->installEventFilter(this);
     ui->selectButton->installEventFilter(this);
@@ -371,35 +371,55 @@ void MainWindow:: displayBatteryLevel() {
 /* --------------------------------START OF SLOTS--------------------------------- */
 
 void MainWindow:: handlePowerPress() {
-    // Cycle through the session groups, since the only difference between the groups is duration, only the durations vector will be cycled through
-    // If the end of the array is reached, set index back to 0
-    if (curSessionGroupIndex == 2) {
-        curSessionGroupIndex = 0;
-        curDuration = durations[curSessionGroupIndex]; // Set current duration accordingly
+    // turn on device
+    if (!powerStatus) {
+        int te = powerHoldTimer.elapsed();
+        if (te > 1000) {
+            cout << "Turning on device" << endl;
+            togglePowerStatus();
+            return;
+        }
 
-        // disable mode change button
-        ui->modeButton->setEnabled(false);
     }
-    // Else, increment the index to reach the next duration, which indicates the next session group
+
     else {
-        curSessionGroupIndex += 1;
-        curDuration = durations[curSessionGroupIndex]; // Set current duration accordingly
+        int te = powerHoldTimer.elapsed();
+        if (te > 1000) {
+            cout << "Turning off device" << endl;
+            togglePowerStatus();
+            return;
+        }
 
-        // disable mode change button
-        ui->modeButton->setEnabled(false);
+        // Cycle through the session groups, since the only difference between the groups is duration, only the durations vector will be cycled through
+        // If the end of the array is reached, set index back to 0
+        else if (curSessionGroupIndex == 2) {
+            curSessionGroupIndex = 0;
+            curDuration = durations[curSessionGroupIndex]; // Set current duration accordingly
+
+            // disable mode change button
+            ui->modeButton->setEnabled(false);
+        }
+        // Else, increment the index to reach the next duration, which indicates the next session group
+        else {
+            curSessionGroupIndex += 1;
+            curDuration = durations[curSessionGroupIndex]; // Set current duration accordingly
+
+            // disable mode change button
+            ui->modeButton->setEnabled(false);
+        }
+
+        // If the User Designated Group is chosen, allow the user to choose a custom duration, session frequency type and ces mode
+        if (curSessionGroupIndex == 2) {
+           // DO SOMETHING
+           // enable mode change button
+           ui->modeButton->setEnabled(true);
+        }
+
+        // Update the UI to reflect changes
+        updateSessionsMenu();
+
+        qInfo("Session Group: %i", curSessionGroupIndex);
     }
-
-    // If the User Designated Group is chosen, allow the user to choose a custom duration, session frequency type and ces mode
-    if (curSessionGroupIndex == 2) {
-       // DO SOMETHING
-       // enable mode change button
-       ui->modeButton->setEnabled(true);
-    }
-
-    // Update the UI to reflect changes
-    updateSessionsMenu();
-
-    qInfo("Session Group: %i", curSessionGroupIndex);
 }
 
 void MainWindow:: handleDownPress() {
@@ -488,11 +508,6 @@ void MainWindow:: handleBatteryLow() {
     //End session if session running, if during a session continuously keep calling the function///Continue blinking as well while ending session
 }
 
-void MainWindow::handleHoldPress()
-{
-    togglePowerStatus();
-}
-
 void MainWindow::handleAddProfilePress()
 {
     UserProfile* newUser;
@@ -526,6 +541,10 @@ void MainWindow::updatePerSecond() {
         qDebug() << "Remaining time: " << rtStr;
 
     }
+}
+
+void MainWindow::handlePowerHold() {
+    powerHoldTimer.start();
 }
 
 /* ---------------------------------END OF SLOTS--------------------------- */
@@ -702,7 +721,6 @@ void MainWindow:: changeButtonStyles(QPushButton* btn, QEvent* event){
 void MainWindow::toggleButtonState(bool state) {
     ui->upButton->setEnabled(state);
     ui->downButton->setEnabled(state);
-    ui->pwrButton->setEnabled(state);
     ui->selectButton->setEnabled(state);
     ui->tabWidget->setEnabled(state);
     ui->modeButton->setEnabled(state);
@@ -721,9 +739,6 @@ void MainWindow::greenLightOff(){
 bool MainWindow:: eventFilter(QObject* obj, QEvent* event){
     if(obj == (QObject*)ui->pwrButton){
         changeButtonStyles(ui->pwrButton, event);
-    }
-    else if(obj == (QObject*)ui->holdButton){
-        changeButtonStyles(ui->holdButton, event);
     }
     else if(obj == (QObject*)ui->upButton){
         changeButtonStyles(ui->upButton, event);
