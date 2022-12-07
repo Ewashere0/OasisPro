@@ -30,6 +30,9 @@ MainWindow::MainWindow(QWidget *parent)
     // starting per second timer with one second intervals
     perSecondTimer.start(1000);
 
+    // setting session time label to 00:00 as default on start-up
+    ui->remainTimeN->setText("00:00");
+
     //Adding Default Guest Profile
     UserProfile* guest;
     QString g = "Guest";
@@ -464,7 +467,9 @@ void MainWindow::handleModePress() {
 void MainWindow::updatePerSecond() {
     if (sessionTimer.isActive()) {
         int rt = sessionTimer.remainingTime() / 1000;
-        cout << "Remaining time: " << rt << endl;
+        QString rtStr = QString::number(rt) + ":00";
+        ui->remainTimeN->setText(rtStr);
+        qDebug() << "Remaining time: " << rtStr;
     }
 }
 
