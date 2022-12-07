@@ -101,9 +101,11 @@ MainWindow::~MainWindow()
 {
 // This line is commented out, unsure of its purpose. The sessionTypes is reset automatically every time the program is run, so why do
 // we need to manually remove each item in the sessionTypes ??? - Henry
-//    for (int i = 0; i < sessionTypes.size(); i++) {
-//        delete sessionTypes[i];
-//    }
+    for (Session *s: sessionTypes) {
+        if (s != NULL) {
+            delete s;
+        }
+    }
 
     delete ui;
 }
