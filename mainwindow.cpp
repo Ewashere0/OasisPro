@@ -21,6 +21,15 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->addProfileButton, SIGNAL(released()), this, SLOT (handleAddProfilePress()));
     connect(ui->modeButton, SIGNAL(released()), this, SLOT (handleModePress()));
 
+    // connect session timer to its handler
+    connect(&sessionTimer, SIGNAL(timeout()), this, SLOT (promptToRecord()));
+
+    // connect per second timer to its handler
+    connect(&perSecondTimer, SIGNAL(timeout()), this, SLOT (updatePerSecond()));
+
+    // starting per second timer with one second intervals
+    perSecondTimer.start(1000);
+
     //Adding Default Guest Profile
     UserProfile* guest;
     QString g = "Guest";
@@ -55,11 +64,11 @@ MainWindow::MainWindow(QWidget *parent)
     // Create the 4 pre-defined sessions, storing them inside a Session Group
     for (int i = 0; i < 4; i++) {
         if (i == 1) {
-            Session* session = new Session(i, sessionFreqRanges[i], cesModes[1]);
+            Session* session = new Session(sessionFreqRanges[i], cesModes[1]);
             sessionTypes.push_back(session);
         }
         else {
-            Session* session = new Session(i, sessionFreqRanges[i], cesModes[0]);
+            Session* session = new Session(sessionFreqRanges[i], cesModes[0]);
             sessionTypes.push_back(session);
         }
     }
@@ -100,339 +109,6 @@ MainWindow::~MainWindow()
 //#define RED "#fd0002"
 //#define GREEN "#00ed00"
 //#define BLUE "#80c3bf"
-
-void MainWindow::pwrLightOn(int index){
-    switch(index){
-        case 1: ui->oneLabel->setStyleSheet("color: #00ed00");break;
-        case 2: ui->twoLabel->setStyleSheet("color: #00ed00");break;
-        case 3: ui->threeLabel->setStyleSheet("color: #00ed00");break;
-        case 4: ui->fourLabel->setStyleSheet("color: #e5e400");break;
-        case 5: ui->fiveLabel->setStyleSheet("color: #e5e400");break;
-        case 6: ui->sixLabel->setStyleSheet("color: #e5e400");break;
-        case 7: ui->sevenLabel->setStyleSheet("color: #fd0002");break;
-        case 8: ui->eightLabel->setStyleSheet("color: #fd0002");break;
-    }
-    ui->pwrLvlSplitter->repaint();
-}
-
-void MainWindow::pwrLightOff(int index){
-    switch(index){
-        case 1: ui->oneLabel->setStyleSheet("color: grey");break;
-        case 2: ui->twoLabel->setStyleSheet("color: grey");break;
-        case 3: ui->threeLabel->setStyleSheet("color: grey");break;
-        case 4: ui->fourLabel->setStyleSheet("color: grey");break;
-        case 5: ui->fiveLabel->setStyleSheet("color: grey");break;
-        case 6: ui->sixLabel->setStyleSheet("color: grey");break;
-        case 7: ui->sevenLabel->setStyleSheet("color: grey");break;
-        case 8: ui->eightLabel->setStyleSheet("color: grey");break;
-    }
-    ui->pwrLvlSplitter->repaint();
-}
-
-
-
-void MainWindow::togglePowerStatus() {
-    powerStatus = !powerStatus;
-    toggleButtonState(powerStatus);
-    if (powerStatus) {
-        greenLightOn();
-        displayBatteryLevel();
-        // Light up the default session group and session number icons when turned on
-//        groupTwentyMinLightOn();
-//        sessionMETLightOn();
-        updateSessionsMenu();
-    }
-    else {
-        greenLightOff();
-        // Turn off all session groups and session numbers icons when turned off
-        allSessionGroupLightOff();
-        allSessionLightOff();
-    }
-}
-
-void MainWindow::toggleButtonState(bool state) {
-    ui->upButton->setEnabled(state);
-    ui->downButton->setEnabled(state);
-    ui->pwrButton->setEnabled(state);
-    ui->selectButton->setEnabled(state);
-    ui->tabWidget->setEnabled(state);
-    ui->modeButton->setEnabled(state);
-}
-
-void MainWindow::greenLightOn(){
-    ui->pwrLight->setStyleSheet("background-color: #00ed00");
-    ui->pwrLight->repaint();
-}
-
-void MainWindow::greenLightOff(){
-    ui->pwrLight->setStyleSheet("color: black");
-    ui->pwrLight->repaint();
-}
-
-bool MainWindow:: eventFilter(QObject* obj, QEvent* event){
-    if(obj == (QObject*)ui->pwrButton){
-        changeButtonStyles(ui->pwrButton, event);
-    }
-    else if(obj == (QObject*)ui->holdButton){
-        changeButtonStyles(ui->holdButton, event);
-    }
-    else if(obj == (QObject*)ui->upButton){
-        changeButtonStyles(ui->upButton, event);
-    }
-    else if(obj == (QObject*)ui->downButton){
-        changeButtonStyles(ui->downButton, event);
-    }
-    else if(obj == (QObject*)ui->selectButton){
-        changeButtonStyles(ui->selectButton, event);
-    }
-    return QWidget::eventFilter(obj, event);
-}
-
-void MainWindow:: changeButtonStyles(QPushButton* btn, QEvent* event){
-    if(event->type() == QEvent::Enter){
-         btn->setStyleSheet("color: #e5e400;"
-                                      "border: 0.2em solid #e6faf8;"
-                                      "min-height: 3em;"
-                                      "max-height: 3em;"
-                                      "min-width: 3em;"
-                                      "max-width: 3em;"
-                                      "border-radius: 1.5em;");
-
-    }
-    else if(event->type() == QEvent::Leave){
-        btn->setStyleSheet("color: #e5e400;"
-                                     "border: 0.2em solid #80c3bf;"
-                                     "min-height: 3em;"
-                                     "max-height: 3em;"
-                                     "min-width: 3em;"
-                                     "max-width: 3em;"
-                                     "border-radius: 1.5em;");
-
-   }
-}
-
-void MainWindow:: promptSignIn() {
-    // DO SOMETHING
-    //Force users to make or select profile. Or select Guest
-
-    //DEPRECATED
-}
-
-void MainWindow:: standby() {
-    // DO SOMETHING
-}
-
-void MainWindow:: handlePowerPress() {
-    // Cycle through the session groups, since the only difference between the groups is duration, only the durations vector will be cycled through
-    // If the end of the array is reached, set index back to 0
-    if (curSessionGroupIndex == 2) {
-        curSessionGroupIndex = 0;
-        curDuration = durations[curSessionGroupIndex]; // Set current duration accordingly
-    }
-    // Else, increment the index to reach the next duration, which indicates the next session group
-    else {
-        curSessionGroupIndex += 1;
-        curDuration = durations[curSessionGroupIndex]; // Set current duration accordingly
-    }
-
-    // If the User Designated Group is chosen, allow the user to choose a custom duration, session frequency type and ces mode
-    if (curSessionGroupIndex == 2) {
-       // DO SOMETHING
-    }
-
-    // Update the UI to reflect changes
-    updateSessionsMenu();
-
-    qInfo("Session Group: %i", curSessionGroupIndex);
-}
-
-void MainWindow:: updateSessionsMenu() {
-    // Update UI when cycling through session groups
-    allSessionGroupLightOff();
-    if (curSessionGroupIndex == 0) {groupTwentyMinLightOn();}
-    else if (curSessionGroupIndex == 1) {groupFortyFiveMinLightOn();}
-    else if (curSessionGroupIndex == 2) {groupUserDesignatedLightOn();}
-    // Update UI when cycling through sessions (i.e. session frequency types)
-    allSessionLightOff();
-    if (curSessionIndex == 0) {sessionMETLightOn();}
-    else if (curSessionIndex == 1) {sessionSDeltaLightOn();}
-    else if (curSessionIndex == 2) {sessionDeltaLightOn();}
-    else if (curSessionIndex == 3) {sessionThetaLightOn();}
-}
-
-// Functions for Session Group and Session Numbers UI changes:
-void MainWindow::groupTwentyMinLightOn() {
-    ui->twentyMinLabel->setStyleSheet("color: #e5e400;");
-    ui->twentyMinLabel->repaint();
-}
-
-void MainWindow::groupFortyFiveMinLightOn() {
-    ui->fortyFiveMinLabel->setStyleSheet("color: #e5e400");
-    ui->fortyFiveMinLabel->repaint();
-}
-
-void MainWindow::groupUserDesignatedLightOn() {
-    ui->userDesignatedLabel->setStyleSheet("color: #e5e400;");
-    ui->userDesignatedLabel->repaint();
-}
-
-void MainWindow::allSessionGroupLightOff() {
-    ui->twentyMinLabel->setStyleSheet("color: grey");
-    ui->twentyMinLabel->repaint();
-
-    ui->fortyFiveMinLabel->setStyleSheet("color: grey");
-    ui->fortyFiveMinLabel->repaint();
-
-    ui->userDesignatedLabel->setStyleSheet("color: grey");
-    ui->userDesignatedLabel->repaint();
-}
-
-void MainWindow::sessionMETLightOn() {
-    ui->METLabel->setStyleSheet("color: #00ed00");
-    ui->METLabel->repaint();
-}
-
-void MainWindow::sessionSDeltaLightOn() {
-    ui->sDeltaLabel->setStyleSheet("color: #00ed00");
-    ui->sDeltaLabel->repaint();
-}
-
-void MainWindow::sessionDeltaLightOn() {
-    ui->deltaLabel->setStyleSheet("color: #00ed00");
-    ui->deltaLabel->repaint();
-}
-
-void MainWindow::sessionThetaLightOn() {
-    ui->thetaLabel->setStyleSheet("color: #00ed00");
-    ui->thetaLabel->repaint();
-}
-
-void MainWindow::allSessionLightOff() {
-    ui->METLabel->setStyleSheet("color: grey");
-    ui->METLabel->repaint();
-
-    ui->sDeltaLabel->setStyleSheet("color: grey");
-    ui->sDeltaLabel->repaint();
-
-    ui->deltaLabel->setStyleSheet("color: grey");
-    ui->deltaLabel->repaint();
-
-    ui->thetaLabel->setStyleSheet("color: grey");
-    ui->thetaLabel->repaint();
-}
-
-void MainWindow::updateModeUI() {
-    if(curModeIndex == 0) {
-        ui->shortPulse->setStyleSheet("image : url(:/pulses/Short_pulse_green.png)");
-        ui->longPulse->setStyleSheet("image : url(:/pulses/Long_pulse.png)");
-    }
-    else {
-        ui->longPulse->setStyleSheet("image : url(:/pulses/Long_pulse_green.png)");
-        ui->shortPulse->setStyleSheet("image : url(:/pulses/Short_pulse.png)");
-    }
-    ui->shortPulse->repaint();
-    ui->longPulse->repaint();
-}
-
-/*/////////////////////////////////////////////////////////////*/
-
-void MainWindow:: handleDownPress() {
-    // Cycle through the sessions, since sessions and session frequency types are one and the same, we will cycle through the session
-    // frequency types icons
-    // If index = 0 is reached, reset index back to 3
-    if (curSessionIndex == 0) {
-        curSessionIndex = 3;
-    }
-    // Else, decrement the index to reach the next session
-    else {
-        curSessionIndex -= 1;
-    }
-    // Update the UI to reflect changes
-    updateSessionsMenu();
-
-    qInfo("Session: %i", curSessionIndex);
-}
-
-void MainWindow:: handleUpPress() {
-    // Cycle through the sessions, since sessions and session frequency types are one and the same, we will cycle through the session
-    // frequency types icons
-    // If index = 3 is reached, reset index back to 0
-    if (curSessionIndex == 3) {
-        curSessionIndex = 0;
-    }
-    // Else, increment the index to reach the next session
-    else {
-        curSessionIndex += 1;
-    }
-    // Update the UI to reflect changes
-    updateSessionsMenu();
-
-    qInfo("Session: %i", curSessionIndex);
-}
-
-void MainWindow:: handleSelectPress() {
-    // DO SOMETHING
-    //Either start session or choose behaviour depending on mode
-}
-
-void MainWindow:: startSession() {
-    Session *s = sessionTypes[curSessionIndex]; //not really sure what to do with the session object
-    //when session is started, will do a timer and on the end of timer, user will be prompted to record.
-    //session time = minutes but in seconds hence the 1000 to convert ms to s.
-    QTimer::singleShot(curDuration*1000,this,&MainWindow::promptToRecord);
-    // Use curSessionGroupIndex for the duration vector to get the chosen Duration
-    // Use curSessionIndex for the sessionTypes vector to get the chosen Session object, which will contain the chosen
-    // session frequency type and CES mode
-
-}
-
-void MainWindow:: displayBatteryLevel() {
-
-    if (batteryLevel > 50) {
-
-        for (int i =0; i < 2 ; ++i) {
-            pwrLightOn(1);
-            pwrLightOn(2);
-            pwrLightOn(3);
-            usleep(100000 * 2); //Sleeps for two seconds
-            pwrLightOff(1);
-            pwrLightOff(2);
-            pwrLightOff(3);
-            usleep(100000 * 2); //Sleeps for two seconds
-            cout << "Battery Level is at: "<<batteryLevel<<endl;
-        }
-    } else if (batteryLevel > 25) {
-
-        for (int i =0; i < 2 ; ++i) {
-            pwrLightOn(1);
-            pwrLightOn(2);
-            usleep(100000 * 2); //Sleeps for two seconds
-            pwrLightOff(1);
-            pwrLightOff(2);
-            usleep(100000 * 2); //Sleeps for two seconds
-        }
-        cout << "Battery Level is at: "<< batteryLevel << endl;
-    } else if (batteryLevel >10) {
-        for (int i =0; i < 2 ; ++i) {
-            pwrLightOn(1);
-            usleep(100000 * 2); //Sleeps for two seconds
-            pwrLightOff(1);
-            usleep(100000 * 2); //Sleeps for two seconds
-        }
-        cout << "Battery Level is at: "<<batteryLevel<<endl;
-        handleBatteryLow(); //End session if running, and continue blinking for a short period while ending session
-    }
-}
-
-void MainWindow:: updateBatteryLevel() {
-    // DO SOMETHING
-}
-
-void MainWindow:: handleBatteryLow() {
-
-
-    //End session if session running, if during a session continuously keep calling the function///Continue blinking as well while ending session
-}
 
 void MainWindow:: startConnectionTest() {
     // DO SOMETHING
@@ -525,6 +201,8 @@ void MainWindow:: savePreferences() {
 }
 
 void MainWindow:: promptToRecord() {
+    // testing timer
+    cout << "Timer finished now!" << endl;
     // DO SOMETHING
 }
 
@@ -546,6 +224,217 @@ void MainWindow:: signIn() {
     // DO SOMETHING
 }
 
+void MainWindow::pwrLightOn(int index){
+    switch(index){
+        case 1: ui->oneLabel->setStyleSheet("color: #00ed00");break;
+        case 2: ui->twoLabel->setStyleSheet("color: #00ed00");break;
+        case 3: ui->threeLabel->setStyleSheet("color: #00ed00");break;
+        case 4: ui->fourLabel->setStyleSheet("color: #e5e400");break;
+        case 5: ui->fiveLabel->setStyleSheet("color: #e5e400");break;
+        case 6: ui->sixLabel->setStyleSheet("color: #e5e400");break;
+        case 7: ui->sevenLabel->setStyleSheet("color: #fd0002");break;
+        case 8: ui->eightLabel->setStyleSheet("color: #fd0002");break;
+    }
+    ui->pwrLvlSplitter->repaint();
+}
+
+void MainWindow::pwrLightOff(int index){
+    switch(index){
+        case 1: ui->oneLabel->setStyleSheet("color: grey");break;
+        case 2: ui->twoLabel->setStyleSheet("color: grey");break;
+        case 3: ui->threeLabel->setStyleSheet("color: grey");break;
+        case 4: ui->fourLabel->setStyleSheet("color: grey");break;
+        case 5: ui->fiveLabel->setStyleSheet("color: grey");break;
+        case 6: ui->sixLabel->setStyleSheet("color: grey");break;
+        case 7: ui->sevenLabel->setStyleSheet("color: grey");break;
+        case 8: ui->eightLabel->setStyleSheet("color: grey");break;
+    }
+    ui->pwrLvlSplitter->repaint();
+}
+
+
+
+void MainWindow::togglePowerStatus() {
+    powerStatus = !powerStatus;
+    toggleButtonState(powerStatus);
+    if (powerStatus) {
+        greenLightOn();
+        displayBatteryLevel();
+        // Light up the default session group and session number icons when turned on
+//        groupTwentyMinLightOn();
+//        sessionMETLightOn();
+        updateSessionsMenu();
+    }
+    else {
+        greenLightOff();
+        // Turn off all session groups and session numbers icons when turned off
+        allSessionGroupLightOff();
+        allSessionLightOff();
+    }
+}
+
+void MainWindow:: promptSignIn() {
+    // DO SOMETHING
+    //Force users to make or select profile. Or select Guest
+
+    //DEPRECATED
+}
+
+void MainWindow:: standby() {
+    // DO SOMETHING
+}
+
+void MainWindow:: updateBatteryLevel() {
+    // DO SOMETHING
+}
+
+void MainWindow:: startSession() {
+
+    // Use curSessionGroupIndex for the duration vector to get the chosen Duration
+    // Use curSessionIndex for the sessionTypes vector to get the chosen Session object, which will contain the chosen
+    // session frequency type and CES mode
+
+    Session *curSession;
+    sessionTimer.setSingleShot(true);
+
+    // if curSessionGroupIndex is not 2 (user-defined), use the current pre-defined session with the curDuration
+    if(curSessionGroupIndex != 2) {
+        curSession = sessionTypes[curSessionIndex];
+    }
+
+    // user-selected frequency and mode chosen, along with user-selected duration
+    else {
+        curSession = new Session(sessionFreqRanges[curFrequencyIndex], cesModes[curModeIndex]);
+    }
+
+    // created a QTimer object in mainWindow on which you can call the QTimer functions
+    // once this timer ends, the promptToRecord() function is called (connected by timeout() signal)
+    //session time = minutes but in seconds hence the 1000 to convert ms to s.
+
+    sessionTimer.start(curDuration*1000);
+
+
+    //when session is started, will do a timer and on the end of timer, user will be prompted to record.
+
+
+    //QTimer::singleShot(curDuration*1000,this,&MainWindow::promptToRecord);
+
+
+
+}
+
+void MainWindow:: displayBatteryLevel() {
+
+    if (batteryLevel > 50) {
+
+        for (int i =0; i < 2 ; ++i) {
+            pwrLightOn(1);
+            pwrLightOn(2);
+            pwrLightOn(3);
+            usleep(100000 * 2); //Sleeps for two seconds
+            pwrLightOff(1);
+            pwrLightOff(2);
+            pwrLightOff(3);
+            usleep(100000 * 2); //Sleeps for two seconds
+            cout << "Battery Level is at: "<<batteryLevel<<endl;
+        }
+    } else if (batteryLevel > 25) {
+
+        for (int i =0; i < 2 ; ++i) {
+            pwrLightOn(1);
+            pwrLightOn(2);
+            usleep(100000 * 2); //Sleeps for two seconds
+            pwrLightOff(1);
+            pwrLightOff(2);
+            usleep(100000 * 2); //Sleeps for two seconds
+        }
+        cout << "Battery Level is at: "<< batteryLevel << endl;
+    } else if (batteryLevel >10) {
+        for (int i =0; i < 2 ; ++i) {
+            pwrLightOn(1);
+            usleep(100000 * 2); //Sleeps for two seconds
+            pwrLightOff(1);
+            usleep(100000 * 2); //Sleeps for two seconds
+        }
+        cout << "Battery Level is at: "<<batteryLevel<<endl;
+        handleBatteryLow(); //End session if running, and continue blinking for a short period while ending session
+    }
+}
+
+/* --------------------------------START OF SLOTS--------------------------------- */
+
+void MainWindow:: handlePowerPress() {
+    // Cycle through the session groups, since the only difference between the groups is duration, only the durations vector will be cycled through
+    // If the end of the array is reached, set index back to 0
+    if (curSessionGroupIndex == 2) {
+        curSessionGroupIndex = 0;
+        curDuration = durations[curSessionGroupIndex]; // Set current duration accordingly
+    }
+    // Else, increment the index to reach the next duration, which indicates the next session group
+    else {
+        curSessionGroupIndex += 1;
+        curDuration = durations[curSessionGroupIndex]; // Set current duration accordingly
+    }
+
+    // If the User Designated Group is chosen, allow the user to choose a custom duration, session frequency type and ces mode
+    if (curSessionGroupIndex == 2) {
+       // DO SOMETHING
+    }
+
+    // Update the UI to reflect changes
+    updateSessionsMenu();
+
+    qInfo("Session Group: %i", curSessionGroupIndex);
+}
+
+void MainWindow:: handleDownPress() {
+    // Cycle through the sessions, since sessions and session frequency types are one and the same, we will cycle through the session
+    // frequency types icons
+    // If index = 0 is reached, reset index back to 3
+    if (curSessionIndex == 0) {
+        curSessionIndex = 3;
+    }
+    // Else, decrement the index to reach the next session
+    else {
+        curSessionIndex -= 1;
+    }
+    // Update the UI to reflect changes
+    updateSessionsMenu();
+
+    qInfo("Frequency: %i", curSessionIndex);
+}
+
+void MainWindow:: handleUpPress() {
+    // Cycle through the sessions, since sessions and session frequency types are one and the same, we will cycle through the session
+    // frequency types icons
+    // If index = 3 is reached, reset index back to 0
+    if (curSessionIndex == 3) {
+        curSessionIndex = 0;
+    }
+    // Else, increment the index to reach the next session
+    else {
+        curSessionIndex += 1;
+    }
+    // Update the UI to reflect changes
+    updateSessionsMenu();
+
+    qInfo("Frequency: %i", curSessionIndex);
+}
+
+void MainWindow:: handleSelectPress() {
+    // DO SOMETHING
+    //Either start session or choose behaviour depending on mode
+    startSession();
+}
+
+
+
+void MainWindow:: handleBatteryLow() {
+
+
+    //End session if session running, if during a session continuously keep calling the function///Continue blinking as well while ending session
+}
+
 void MainWindow::handleHoldPress()
 {
     togglePowerStatus();
@@ -563,6 +452,31 @@ void MainWindow::handleAddProfilePress()
     updateView();
 }
 
+void MainWindow::handleModePress() {
+    switch(curModeIndex) {
+    case 0: curModeIndex = 1; break;
+    case 1: curModeIndex = 0; break;
+    }
+
+    updateModeUI();
+}
+
+void MainWindow::updatePerSecond() {
+    if (sessionTimer.isActive()) {
+        int rt = sessionTimer.remainingTime() / 1000;
+        cout << "Remaining time: " << rt << endl;
+    }
+}
+
+/* ---------------------------------END OF SLOTS--------------------------- */
+
+
+
+
+
+
+/* ---------------------------------UI UPDATES----------------------------- */
+
 void MainWindow::updateView() {
 
     ui->profileSelector->clear(); //Clears Previous Values
@@ -574,18 +488,151 @@ void MainWindow::updateView() {
 
 }
 
-void MainWindow::handleModePress() {
-    switch(curModeIndex) {
-    case 0: curModeIndex = 1; break;
-    case 1: curModeIndex = 0; break;
+void MainWindow::updateModeUI() {
+    if(curModeIndex == 0) {
+        ui->shortPulse->setStyleSheet("image : url(:/pulses/Short_pulse_green.png)");
+        ui->longPulse->setStyleSheet("image : url(:/pulses/Long_pulse.png)");
     }
-
-    updateModeUI();
+    else {
+        ui->longPulse->setStyleSheet("image : url(:/pulses/Long_pulse_green.png)");
+        ui->shortPulse->setStyleSheet("image : url(:/pulses/Short_pulse.png)");
+    }
+    ui->shortPulse->repaint();
+    ui->longPulse->repaint();
 }
 
+void MainWindow:: updateSessionsMenu() {
+    // Update UI when cycling through session groups
+    allSessionGroupLightOff();
+    if (curSessionGroupIndex == 0) {groupTwentyMinLightOn();}
+    else if (curSessionGroupIndex == 1) {groupFortyFiveMinLightOn();}
+    else if (curSessionGroupIndex == 2) {groupUserDesignatedLightOn();}
+    // Update UI when cycling through sessions (i.e. session frequency types)
+    allSessionLightOff();
+    if (curSessionIndex == 0) {sessionMETLightOn();}
+    else if (curSessionIndex == 1) {sessionSDeltaLightOn();}
+    else if (curSessionIndex == 2) {sessionDeltaLightOn();}
+    else if (curSessionIndex == 3) {sessionThetaLightOn();}
+}
 
-/* END OF SLOTS */
+// Functions for Session Group and Session Numbers UI changes:
+void MainWindow::groupTwentyMinLightOn() {
+    ui->twentyMinLabel->setStyleSheet("color: #e5e400;");
+    ui->twentyMinLabel->repaint();
+}
 
+void MainWindow::groupFortyFiveMinLightOn() {
+    ui->fortyFiveMinLabel->setStyleSheet("color: #e5e400");
+    ui->fortyFiveMinLabel->repaint();
+}
 
+void MainWindow::groupUserDesignatedLightOn() {
+    ui->userDesignatedLabel->setStyleSheet("color: #e5e400;");
+    ui->userDesignatedLabel->repaint();
+}
 
+void MainWindow::allSessionGroupLightOff() {
+    ui->twentyMinLabel->setStyleSheet("color: grey");
+    ui->twentyMinLabel->repaint();
 
+    ui->fortyFiveMinLabel->setStyleSheet("color: grey");
+    ui->fortyFiveMinLabel->repaint();
+
+    ui->userDesignatedLabel->setStyleSheet("color: grey");
+    ui->userDesignatedLabel->repaint();
+}
+
+void MainWindow::sessionMETLightOn() {
+    ui->METLabel->setStyleSheet("color: #00ed00");
+    ui->METLabel->repaint();
+}
+
+void MainWindow::sessionSDeltaLightOn() {
+    ui->sDeltaLabel->setStyleSheet("color: #00ed00");
+    ui->sDeltaLabel->repaint();
+}
+
+void MainWindow::sessionDeltaLightOn() {
+    ui->deltaLabel->setStyleSheet("color: #00ed00");
+    ui->deltaLabel->repaint();
+}
+
+void MainWindow::sessionThetaLightOn() {
+    ui->thetaLabel->setStyleSheet("color: #00ed00");
+    ui->thetaLabel->repaint();
+}
+
+void MainWindow::allSessionLightOff() {
+    ui->METLabel->setStyleSheet("color: grey");
+    ui->METLabel->repaint();
+
+    ui->sDeltaLabel->setStyleSheet("color: grey");
+    ui->sDeltaLabel->repaint();
+
+    ui->deltaLabel->setStyleSheet("color: grey");
+    ui->deltaLabel->repaint();
+
+    ui->thetaLabel->setStyleSheet("color: grey");
+    ui->thetaLabel->repaint();
+}
+
+void MainWindow:: changeButtonStyles(QPushButton* btn, QEvent* event){
+    if(event->type() == QEvent::Enter){
+         btn->setStyleSheet("color: #e5e400;"
+                                      "border: 0.2em solid #e6faf8;"
+                                      "min-height: 3em;"
+                                      "max-height: 3em;"
+                                      "min-width: 3em;"
+                                      "max-width: 3em;"
+                                      "border-radius: 1.5em;");
+
+    }
+    else if(event->type() == QEvent::Leave){
+        btn->setStyleSheet("color: #e5e400;"
+                                     "border: 0.2em solid #80c3bf;"
+                                     "min-height: 3em;"
+                                     "max-height: 3em;"
+                                     "min-width: 3em;"
+                                     "max-width: 3em;"
+                                     "border-radius: 1.5em;");
+
+   }
+}
+
+void MainWindow::toggleButtonState(bool state) {
+    ui->upButton->setEnabled(state);
+    ui->downButton->setEnabled(state);
+    ui->pwrButton->setEnabled(state);
+    ui->selectButton->setEnabled(state);
+    ui->tabWidget->setEnabled(state);
+    ui->modeButton->setEnabled(state);
+}
+
+void MainWindow::greenLightOn(){
+    ui->pwrLight->setStyleSheet("background-color: #00ed00");
+    ui->pwrLight->repaint();
+}
+
+void MainWindow::greenLightOff(){
+    ui->pwrLight->setStyleSheet("color: black");
+    ui->pwrLight->repaint();
+}
+
+bool MainWindow:: eventFilter(QObject* obj, QEvent* event){
+    if(obj == (QObject*)ui->pwrButton){
+        changeButtonStyles(ui->pwrButton, event);
+    }
+    else if(obj == (QObject*)ui->holdButton){
+        changeButtonStyles(ui->holdButton, event);
+    }
+    else if(obj == (QObject*)ui->upButton){
+        changeButtonStyles(ui->upButton, event);
+    }
+    else if(obj == (QObject*)ui->downButton){
+        changeButtonStyles(ui->downButton, event);
+    }
+    else if(obj == (QObject*)ui->selectButton){
+        changeButtonStyles(ui->selectButton, event);
+    }
+    return QWidget::eventFilter(obj, event);
+}
