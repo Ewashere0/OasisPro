@@ -12,6 +12,7 @@
 #include "Session.h"
 #include "ui_mainwindow.h"
 #include <QTimer>
+#include <QtDebug>
 
 
 using namespace std;
