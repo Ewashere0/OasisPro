@@ -19,6 +19,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->downButton, SIGNAL(released()), this, SLOT (handleDownPress()));
     connect(ui->selectButton, SIGNAL(released()), this, SLOT (handleSelectPress()));
     connect(ui->addProfileButton, SIGNAL(released()), this, SLOT (handleAddProfilePress()));
+    connect(ui->modeButton, SIGNAL(released()), this, SLOT (handleModePress()));
 
     //Adding Default Guest Profile
     UserProfile* guest;
@@ -66,6 +67,13 @@ MainWindow::MainWindow(QWidget *parent)
     // Indexes used to cycle through different Session Groups and Sessions when the user pressed the Power or Up and Down buttons
     curSessionGroupIndex = 0;
     curSessionIndex = 0;
+
+    // Indexes used to cycle through different frequencies and toggle between the two different modes
+    curFrequencyIndex = 0;
+    curModeIndex = 0;
+
+    // Updating mode UI as set for default value
+    updateModeUI();
 
     // Setting current duration according to current session group selected
     curDuration = durations[curSessionGroupIndex];
@@ -148,6 +156,7 @@ void MainWindow::toggleButtonState(bool state) {
     ui->pwrButton->setEnabled(state);
     ui->selectButton->setEnabled(state);
     ui->tabWidget->setEnabled(state);
+    ui->modeButton->setEnabled(state);
 }
 
 void MainWindow::greenLightOn(){
@@ -311,6 +320,20 @@ void MainWindow::allSessionLightOff() {
     ui->thetaLabel->setStyleSheet("color: grey");
     ui->thetaLabel->repaint();
 }
+
+void MainWindow::updateModeUI() {
+    if(curModeIndex == 0) {
+        ui->shortPulse->setStyleSheet("image : url(:/pulses/Short_pulse_green.png)");
+        ui->longPulse->setStyleSheet("image : url(:/pulses/Long_pulse.png)");
+    }
+    else {
+        ui->longPulse->setStyleSheet("image : url(:/pulses/Long_pulse_green.png)");
+        ui->shortPulse->setStyleSheet("image : url(:/pulses/Short_pulse.png)");
+    }
+    ui->shortPulse->repaint();
+    ui->longPulse->repaint();
+}
+
 /*/////////////////////////////////////////////////////////////*/
 
 void MainWindow:: handleDownPress() {
@@ -549,6 +572,15 @@ void MainWindow::updateView() {
         ui->profileSelector->addItem(QString::fromStdString(temp));
     }
 
+}
+
+void MainWindow::handleModePress() {
+    switch(curModeIndex) {
+    case 0: curModeIndex = 1; break;
+    case 1: curModeIndex = 0; break;
+    }
+
+    updateModeUI();
 }
 
 

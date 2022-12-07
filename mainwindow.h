@@ -48,6 +48,9 @@ private:
     int batteryLevel;   // indicates the battery level
     int curDuration;    // Indicate the current duration of the chosen session (in mins), based on the chosen session group
     int curIntensity; // indicates the intensity level
+    int curFrequencyIndex; // indicates the currently highlighted frequency
+    int curModeIndex; // indicates currently highlighted mode
+
     vector<string> sessionFreqRanges;
     vector<string> cesModes;
     vector<UserProfile*> users;
@@ -103,6 +106,8 @@ private:
     void greenLightOn(); //turns greenlight on
     void greenLightOff(); //turns the greenlight off
 
+    // updates the UI according to the currently selected mode
+    void updateModeUI();
 
     // Function to change colors for Session Group Icons when cycling through the session groups
     void groupTwentyMinLightOn();
@@ -128,6 +133,9 @@ private slots:
 
     //do something when the add profile button is clicked
     void handleAddProfilePress();
+
+    // handles the press of the change mode button
+    void handleModePress();
 
     //slot when user selects a profile
 
