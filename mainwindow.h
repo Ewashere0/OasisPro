@@ -122,7 +122,7 @@ private:
     void sessionSDeltaLightOn();
     void sessionDeltaLightOn();
     void sessionThetaLightOn();
-    void allSessionLightOff();
+    void allFrequencyLightOff();
 
 private slots:
 

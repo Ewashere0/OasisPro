@@ -204,6 +204,8 @@ void MainWindow:: savePreferences() {
 }
 
 void MainWindow:: promptToRecord() {
+    // after session end, set timer to zero
+    ui->remainTimeN->setText("00:00");
     // testing timer
     cout << "Timer finished now!" << endl;
     // DO SOMETHING
@@ -272,7 +274,7 @@ void MainWindow::togglePowerStatus() {
         greenLightOff();
         // Turn off all session groups and session numbers icons when turned off
         allSessionGroupLightOff();
-        allSessionLightOff();
+        allFrequencyLightOff();
     }
 }
 
@@ -296,6 +298,8 @@ void MainWindow:: startSession() {
     // Use curSessionGroupIndex for the duration vector to get the chosen Duration
     // Use curSessionIndex for the sessionTypes vector to get the chosen Session object, which will contain the chosen
     // session frequency type and CES mode
+
+    inSessionStatus = true;
 
     Session *curSession;
     sessionTimer.setSingleShot(true);
@@ -372,16 +376,24 @@ void MainWindow:: handlePowerPress() {
     if (curSessionGroupIndex == 2) {
         curSessionGroupIndex = 0;
         curDuration = durations[curSessionGroupIndex]; // Set current duration accordingly
+
+        // disable mode change button
+        ui->modeButton->setEnabled(false);
     }
     // Else, increment the index to reach the next duration, which indicates the next session group
     else {
         curSessionGroupIndex += 1;
         curDuration = durations[curSessionGroupIndex]; // Set current duration accordingly
+
+        // disable mode change button
+        ui->modeButton->setEnabled(false);
     }
 
     // If the User Designated Group is chosen, allow the user to choose a custom duration, session frequency type and ces mode
     if (curSessionGroupIndex == 2) {
        // DO SOMETHING
+       // enable mode change button
+       ui->modeButton->setEnabled(true);
     }
 
     // Update the UI to reflect changes
@@ -394,34 +406,72 @@ void MainWindow:: handleDownPress() {
     // Cycle through the sessions, since sessions and session frequency types are one and the same, we will cycle through the session
     // frequency types icons
     // If index = 0 is reached, reset index back to 3
-    if (curSessionIndex == 0) {
-        curSessionIndex = 3;
-    }
-    // Else, decrement the index to reach the next session
-    else {
-        curSessionIndex -= 1;
-    }
-    // Update the UI to reflect changes
-    updateSessionsMenu();
 
-    qInfo("Frequency: %i", curSessionIndex);
+    // if current duration is user-defined, the options to change frequency available
+    if (curSessionGroupIndex == 2) {
+        if (curFrequencyIndex == 0) {
+            curFrequencyIndex = 3;
+        }
+        // Else, decrement the index to reach the next session
+        else {
+            curFrequencyIndex -= 1;
+        }
+        // Update the UI to reflect changes
+        updateSessionsMenu();
+
+        qInfo("Frequency: %i", curFrequencyIndex);
+    }
+
+    // if current duration is not user-defined
+    else {
+        if (curSessionIndex == 0) {
+            curSessionIndex = 3;
+        }
+        // Else, decrement the index to reach the next session
+        else {
+            curSessionIndex -= 1;
+        }
+        // Update the UI to reflect changes
+        updateSessionsMenu();
+
+        qInfo("Pre-defined session: %i", curSessionIndex);
+    }
 }
 
 void MainWindow:: handleUpPress() {
     // Cycle through the sessions, since sessions and session frequency types are one and the same, we will cycle through the session
     // frequency types icons
     // If index = 3 is reached, reset index back to 0
-    if (curSessionIndex == 3) {
-        curSessionIndex = 0;
-    }
-    // Else, increment the index to reach the next session
-    else {
-        curSessionIndex += 1;
-    }
-    // Update the UI to reflect changes
-    updateSessionsMenu();
 
-    qInfo("Frequency: %i", curSessionIndex);
+    // if current duration is user-defined, the options to change frequency available
+    if (curSessionGroupIndex == 2) {
+        if (curFrequencyIndex == 3) {
+            curFrequencyIndex = 0;
+        }
+        // Else, decrement the index to reach the next session
+        else {
+            curFrequencyIndex += 1;
+        }
+        // Update the UI to reflect changes
+        updateSessionsMenu();
+
+        qInfo("Frequency: %i", curFrequencyIndex);
+    }
+
+    // if current duration is not user-defined
+    else {
+        if (curSessionIndex == 3) {
+            curSessionIndex = 0;
+        }
+        // Else, decrement the index to reach the next session
+        else {
+            curSessionIndex += 1;
+        }
+        // Update the UI to reflect changes
+        updateSessionsMenu();
+
+        qInfo("Pre-defined session: %i", curSessionIndex);
+    }
 }
 
 void MainWindow:: handleSelectPress() {
@@ -456,9 +506,12 @@ void MainWindow::handleAddProfilePress()
 }
 
 void MainWindow::handleModePress() {
-    switch(curModeIndex) {
-    case 0: curModeIndex = 1; break;
-    case 1: curModeIndex = 0; break;
+    // if current duration/session group is user-defined
+    if (curSessionGroupIndex == 2) {
+        switch (curModeIndex) {
+        case 0: curModeIndex = 1; break;
+        case 1: curModeIndex = 0; break;
+        }
     }
 
     updateModeUI();
@@ -467,9 +520,11 @@ void MainWindow::handleModePress() {
 void MainWindow::updatePerSecond() {
     if (sessionTimer.isActive()) {
         int rt = sessionTimer.remainingTime() / 1000;
+
         QString rtStr = QString::number(rt) + ":00";
         ui->remainTimeN->setText(rtStr);
         qDebug() << "Remaining time: " << rtStr;
+
     }
 }
 
@@ -494,14 +549,32 @@ void MainWindow::updateView() {
 }
 
 void MainWindow::updateModeUI() {
-    if(curModeIndex == 0) {
-        ui->shortPulse->setStyleSheet("image : url(:/pulses/Short_pulse_green.png)");
-        ui->longPulse->setStyleSheet("image : url(:/pulses/Long_pulse.png)");
+    // user-defined session group, so they can change mode
+    if (curSessionGroupIndex == 2) {
+        if(curModeIndex == 0) {
+            ui->shortPulse->setStyleSheet("image : url(:/pulses/Short_pulse_green.png)");
+            ui->longPulse->setStyleSheet("image : url(:/pulses/Long_pulse.png)");
+        }
+        else {
+            ui->longPulse->setStyleSheet("image : url(:/pulses/Long_pulse_green.png)");
+            ui->shortPulse->setStyleSheet("image : url(:/pulses/Short_pulse.png)");
+        }
     }
+
+    // if session group is pre-defined
     else {
-        ui->longPulse->setStyleSheet("image : url(:/pulses/Long_pulse_green.png)");
-        ui->shortPulse->setStyleSheet("image : url(:/pulses/Short_pulse.png)");
+        switch (curSessionIndex) {
+        case 0: {ui->shortPulse->setStyleSheet("image : url(:/pulses/Short_pulse_green.png)");
+                ui->longPulse->setStyleSheet("image : url(:/pulses/Long_pulse.png)");} break;
+        case 1: {ui->longPulse->setStyleSheet("image : url(:/pulses/Long_pulse_green.png)");
+                ui->shortPulse->setStyleSheet("image : url(:/pulses/Short_pulse.png)");} break;
+        case 2: {ui->shortPulse->setStyleSheet("image : url(:/pulses/Short_pulse_green.png)");
+                ui->longPulse->setStyleSheet("image : url(:/pulses/Long_pulse.png)");} break;
+        case 3: {ui->shortPulse->setStyleSheet("image : url(:/pulses/Short_pulse_green.png)");
+                ui->longPulse->setStyleSheet("image : url(:/pulses/Long_pulse.png)");} break;
+        }
     }
+
     ui->shortPulse->repaint();
     ui->longPulse->repaint();
 }
@@ -509,15 +582,37 @@ void MainWindow::updateModeUI() {
 void MainWindow:: updateSessionsMenu() {
     // Update UI when cycling through session groups
     allSessionGroupLightOff();
-    if (curSessionGroupIndex == 0) {groupTwentyMinLightOn();}
-    else if (curSessionGroupIndex == 1) {groupFortyFiveMinLightOn();}
-    else if (curSessionGroupIndex == 2) {groupUserDesignatedLightOn();}
+    switch (curSessionGroupIndex) {
+        case 0: groupTwentyMinLightOn(); break;
+        case 1: groupFortyFiveMinLightOn(); break;
+        case 2: groupUserDesignatedLightOn(); break;
+    }
+
     // Update UI when cycling through sessions (i.e. session frequency types)
-    allSessionLightOff();
-    if (curSessionIndex == 0) {sessionMETLightOn();}
-    else if (curSessionIndex == 1) {sessionSDeltaLightOn();}
-    else if (curSessionIndex == 2) {sessionDeltaLightOn();}
-    else if (curSessionIndex == 3) {sessionThetaLightOn();}
+    allFrequencyLightOff();
+
+    // if current duration is user-defined, change light according to user-selected frequency and turn off number light of current session type
+    if (curSessionGroupIndex == 2) {
+        pwrLightOff(curSessionIndex+1);
+        switch (curFrequencyIndex) {
+            case 0: sessionMETLightOn(); break;
+            case 1: sessionSDeltaLightOn(); break;
+            case 2: sessionDeltaLightOn(); break;
+            case 3: sessionThetaLightOn(); break;
+        }
+    }
+
+    // if current duration is pre-defined, change light according to pre-defined session frequency
+    else {
+        switch (curSessionIndex) {
+        case 0: {pwrLightOn(1); pwrLightOff(2); pwrLightOff(3); pwrLightOff(4); sessionMETLightOn();} break;
+        case 1: {pwrLightOn(2); pwrLightOff(1); pwrLightOff(3); pwrLightOff(4); sessionSDeltaLightOn();} break;
+        case 2: {pwrLightOn(3); pwrLightOff(2); pwrLightOff(1); pwrLightOff(4); sessionDeltaLightOn();} break;
+        case 3: {pwrLightOn(4); pwrLightOff(2); pwrLightOff(3); pwrLightOff(1); sessionThetaLightOn();} break;
+        }
+    }
+
+    updateModeUI();
 }
 
 // Functions for Session Group and Session Numbers UI changes:
@@ -567,7 +662,7 @@ void MainWindow::sessionThetaLightOn() {
     ui->thetaLabel->repaint();
 }
 
-void MainWindow::allSessionLightOff() {
+void MainWindow::allFrequencyLightOff() {
     ui->METLabel->setStyleSheet("color: grey");
     ui->METLabel->repaint();
 
