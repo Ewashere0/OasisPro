@@ -12,9 +12,9 @@ class Session {
         string cesMode; // CES Mode (page 11 Manual) - 2 available
 
     public:
-        //Session(int n, string fr, string cm, int d); // Constructor to create a Session object (include all 4 member variables)
+        static int baseID; // starting id which is incremented by 1 for each instance
 
-        Session(int n, string fr, string cm); // Constructor to create a Session object (include all 4 member variables)
+        Session(string fr, string cm);
         string getFrequency();
 };
 

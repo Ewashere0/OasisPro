@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QPushButton>
+#include <QElapsedTimer>
 #include <string>
 #include <list>
 #include <iostream>
@@ -11,6 +12,7 @@
 #include "Session.h"
 #include "ui_mainwindow.h"
 #include <QTimer>
+#include <QtDebug>
 
 
 using namespace std;
@@ -48,6 +50,13 @@ private:
     int batteryLevel;   // indicates the battery level
     int curDuration;    // Indicate the current duration of the chosen session (in mins), based on the chosen session group
     int curIntensity; // indicates the intensity level
+    int curFrequencyIndex; // indicates the currently highlighted frequency
+    int curModeIndex; // indicates currently highlighted mode
+
+    QTimer sessionTimer; // timer for session durations;
+    QTimer perSecondTimer; // timer which repeats every one second for updating the session timer remaining time
+    QElapsedTimer powerHoldTimer; // timer to calculate time for power button hold
+
     vector<string> sessionFreqRanges;
     vector<string> cesModes;
     vector<UserProfile*> users;
@@ -86,7 +95,6 @@ private:
     void continueSession(); // continues the session (maybe have a countdown for the duration?)
     void updateIntensity(); // updates the currentIntensity variable according to user input
     void savePreferences(); // saves the user's preferred intensity (where?)
-    void promptToRecord(); // post session, prompts user if they wish to record the just completed session
     void recordTherapy(); // records the therapy session information (duration, frequency, type)
     void createUser(string un, UserProfile**); // handles the new user profile creation
     void selectUser(); // handles the case where the user selects an existing profile
@@ -103,6 +111,8 @@ private:
     void greenLightOn(); //turns greenlight on
     void greenLightOff(); //turns the greenlight off
 
+    // updates the UI according to the currently selected mode
+    void updateModeUI();
 
     // Function to change colors for Session Group Icons when cycling through the session groups
     void groupTwentyMinLightOn();
@@ -114,13 +124,17 @@ private:
     void sessionSDeltaLightOn();
     void sessionDeltaLightOn();
     void sessionThetaLightOn();
-    void allSessionLightOff();
+    void allFrequencyLightOff();
 
 private slots:
-    void handlePowerPress(); // handles the functionality for the power button
 
-    //slot that determines what to call when the "hold" button is pressed
-    void handleHoldPress();
+    void handlePowerHold(); // handles the event where power button is pressed and starts timer
+
+    void promptToRecord(); // post session, prompts user if they wish to record the just completed session
+
+    void updatePerSecond(); // used to update the displayed value of the session timer per second
+
+    void handlePowerPress(); // handles the functionality for the power button
 
     void handleDownPress(); // handles the down button press for selecting session type
     void handleUpPress(); // handles the up button press for selecting session type
@@ -128,6 +142,9 @@ private slots:
 
     //do something when the add profile button is clicked
     void handleAddProfilePress();
+
+    // handles the press of the change mode button
+    void handleModePress();
 
     //slot when user selects a profile
 

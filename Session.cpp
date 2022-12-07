@@ -1,7 +1,10 @@
 #include "Session.h"
 
-Session::Session(int n, string fr, string cm) {
-    id = n;
+int Session::baseID = 1000;
+
+Session::Session(string fr, string cm) {
+    baseID++;
+    id = baseID;
     frequencyRange = fr;
     cesMode = cm;
 }
