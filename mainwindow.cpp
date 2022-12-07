@@ -101,11 +101,11 @@ MainWindow::~MainWindow()
 {
 // This line is commented out, unsure of its purpose. The sessionTypes is reset automatically every time the program is run, so why do
 // we need to manually remove each item in the sessionTypes ??? - Henry
-    for (Session *s: sessionTypes) {
-        if (s != NULL) {
-            delete s;
-        }
-    }
+//    for (Session *s: sessionTypes) {
+//        if (s != NULL) {
+//            delete s;
+//        }
+//    }
 
     delete ui;
 }
@@ -277,6 +277,8 @@ void MainWindow::togglePowerStatus() {
         // Turn off all session groups and session numbers icons when turned off
         allSessionGroupLightOff();
         allFrequencyLightOff();
+
+        pwrLightOff(curSessionIndex+1);
     }
 }
 
