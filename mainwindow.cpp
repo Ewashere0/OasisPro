@@ -93,8 +93,8 @@ MainWindow::MainWindow(QWidget *parent)
     // Default intensity Level
     curIntensity = 4;
 
-    // Default battery Level
-    batteryLevel = 100;
+    // Set default value for inSession
+    inSessionStatus = false;
 }
 
 MainWindow::~MainWindow()
@@ -205,12 +205,24 @@ void MainWindow:: savePreferences() {
     // DO SOMETHING
 }
 
+// Triggered after startSession() - when a session have just finished
 void MainWindow:: promptToRecord() {
     // after session end, set timer to zero
     ui->remainTimeN->setText("00:00");
     // testing timer
     cout << "Timer finished now!" << endl;
-    // DO SOMETHING
+
+    inSessionStatus = false;
+    // Enable the Select button after session is done
+    ui->selectButton->setEnabled(true);
+    // Turn off the light for the Current Intensity Level
+    pwrLightOff(curIntensity);
+    qInfo("Intensity at end: %i", curIntensity);
+    qInfo("Session at end: %i", curSessionIndex);
+    // Turn on the light for the current session number (except when the User Designated group is chosen)
+    if (curSessionGroupIndex != 2) {
+        pwrLightOn(curSessionIndex + 1);
+    }
 }
 
 void MainWindow:: recordTherapy() {
@@ -259,17 +271,28 @@ void MainWindow::pwrLightOff(int index){
     ui->pwrLvlSplitter->repaint();
 }
 
+void MainWindow::pwrLightOffAll() {
+    ui->oneLabel->setStyleSheet("color: grey");
+    ui->twoLabel->setStyleSheet("color: grey");
+    ui->threeLabel->setStyleSheet("color: grey");
+    ui->fourLabel->setStyleSheet("color: grey");
+    ui->fiveLabel->setStyleSheet("color: grey");
+    ui->sixLabel->setStyleSheet("color: grey");
+    ui->sevenLabel->setStyleSheet("color: grey");
+    ui->eightLabel->setStyleSheet("color: grey");
+}
+
 
 
 void MainWindow::togglePowerStatus() {
     powerStatus = !powerStatus;
     toggleButtonState(powerStatus);
     if (powerStatus) {
+        // The device always turn on with a full battery - assume that the user charges the device after turning it off
+        // This is the Default Battery Level
+        batteryLevel = 100;
         greenLightOn();
         displayBatteryLevel();
-        // Light up the default session group and session number icons when turned on
-//        groupTwentyMinLightOn();
-//        sessionMETLightOn();
         updateSessionsMenu();
     }
     else {
@@ -293,8 +316,13 @@ void MainWindow:: standby() {
     // DO SOMETHING
 }
 
-void MainWindow:: updateBatteryLevel() {
-    // DO SOMETHING
+void MainWindow:: updateBatteryLevel(int duration) {
+    // Compute the battery drain based on the current Intensity level duration
+    int batteryDrain = (duration / 5) + (curIntensity / 2);
+    // Update the current Battery Level
+    batteryLevel -= floor(batteryDrain);
+    qInfo("Battery Drain: %i", batteryDrain);
+    qInfo("Battery Level: %i", batteryLevel);
 }
 
 void MainWindow:: startSession() {
@@ -304,6 +332,13 @@ void MainWindow:: startSession() {
     // session frequency type and CES mode
 
     inSessionStatus = true;
+
+    // Disable the select button when session starts
+    ui->selectButton->setEnabled(false);
+    // Turn off all number lights, and turn on the light for the current Intensity level
+    updateIntensityUI();
+    // Set the Previous Remaining Time to be equal to the chosen duration
+    prevRt = durations[curSessionGroupIndex];
 
     Session *curSession;
     sessionTimer.setSingleShot(true);
@@ -326,17 +361,14 @@ void MainWindow:: startSession() {
 
 
     //when session is started, will do a timer and on the end of timer, user will be prompted to record.
-
-
-    //QTimer::singleShot(curDuration*1000,this,&MainWindow::promptToRecord);
-
-
-
+//    QTimer::singleShot(curDuration*1000,this,&MainWindow::promptToRecord);
 }
 
 void MainWindow:: displayBatteryLevel() {
+    // Turn off all other numbers in the bar graph
+    pwrLightOffAll();
 
-    if (batteryLevel > 50) {
+    if (batteryLevel >= 50) {
 
         for (int i =0; i < 2 ; ++i) {
             pwrLightOn(1);
@@ -347,9 +379,9 @@ void MainWindow:: displayBatteryLevel() {
             pwrLightOff(2);
             pwrLightOff(3);
             usleep(100000 * 2); //Sleeps for two seconds
-            cout << "Battery Level is at: "<<batteryLevel<<endl;
         }
-    } else if (batteryLevel > 25) {
+    }
+    else if (batteryLevel < 50 && batteryLevel >= 15) {
 
         for (int i =0; i < 2 ; ++i) {
             pwrLightOn(1);
@@ -359,17 +391,16 @@ void MainWindow:: displayBatteryLevel() {
             pwrLightOff(2);
             usleep(100000 * 2); //Sleeps for two seconds
         }
-        cout << "Battery Level is at: "<< batteryLevel << endl;
-    } else if (batteryLevel >10) {
+    }
+    else if (batteryLevel < 15) {
         for (int i =0; i < 2 ; ++i) {
             pwrLightOn(1);
             usleep(100000 * 2); //Sleeps for two seconds
             pwrLightOff(1);
             usleep(100000 * 2); //Sleeps for two seconds
         }
-        cout << "Battery Level is at: "<<batteryLevel<<endl;
-        handleBatteryLow(); //End session if running, and continue blinking for a short period while ending session
     }
+    cout << "Battery Level is at: "<< batteryLevel << endl;
 }
 
 /* --------------------------------START OF SLOTS--------------------------------- */
@@ -383,7 +414,6 @@ void MainWindow:: handlePowerPress() {
             togglePowerStatus();
             return;
         }
-
     }
 
     else {
@@ -422,79 +452,103 @@ void MainWindow:: handlePowerPress() {
         // Update the UI to reflect changes
         updateSessionsMenu();
 
-        qInfo("Session Group: %i", curSessionGroupIndex);
+//        qInfo("Session Group: %i", curSessionGroupIndex);
     }
 }
 
 void MainWindow:: handleDownPress() {
-    // Cycle through the sessions, since sessions and session frequency types are one and the same, we will cycle through the session
-    // frequency types icons
-    // If index = 0 is reached, reset index back to 3
+    // If NOT currently in a session:
+    if (!inSessionStatus)
+        // Cycle through the sessions/session types
+        // If index = 0 is reached, reset index back to 3
+        // if current duration is user-defined, the options to change frequency available
+        if (curSessionGroupIndex == 2) {
+            if (curFrequencyIndex == 0) {
+                curFrequencyIndex = 3;
+            }
+            // Else, decrement the index to reach the next session
+            else {
+                curFrequencyIndex -= 1;
+            }
+            // Update the UI to reflect changes
+            updateSessionsMenu();
 
-    // if current duration is user-defined, the options to change frequency available
-    if (curSessionGroupIndex == 2) {
-        if (curFrequencyIndex == 0) {
-            curFrequencyIndex = 3;
+            qInfo("Frequency: %i", curFrequencyIndex);
         }
-        // Else, decrement the index to reach the next session
+
+        // if current duration is not user-defined
         else {
-            curFrequencyIndex -= 1;
+            if (curSessionIndex == 0) {
+                curSessionIndex = 3;
+            }
+            // Else, decrement the index to reach the next session
+            else {
+                curSessionIndex -= 1;
+            }
+            // Update the UI to reflect changes
+            updateSessionsMenu();
+
+            qInfo("Pre-defined session: %i", curSessionIndex);
         }
-        // Update the UI to reflect changes
-        updateSessionsMenu();
-
-        qInfo("Frequency: %i", curFrequencyIndex);
-    }
-
-    // if current duration is not user-defined
+    // Else, the Up/Down press will be used to adjust the Intensity Level
     else {
-        if (curSessionIndex == 0) {
-            curSessionIndex = 3;
+        if (curIntensity == 1) {
+            curIntensity = 8;
         }
-        // Else, decrement the index to reach the next session
         else {
-            curSessionIndex -= 1;
+            curIntensity -= 1;
         }
-        // Update the UI to reflect changes
-        updateSessionsMenu();
-
-        qInfo("Pre-defined session: %i", curSessionIndex);
+        // Update the UI to reflect the new Intensity level
+        updateIntensityUI();
     }
 }
 
 void MainWindow:: handleUpPress() {
-    // Cycle through the sessions, since sessions and session frequency types are one and the same, we will cycle through the session
-    // frequency types icons
-    // If index = 3 is reached, reset index back to 0
+    // If NOT currently in a session
+    if (!inSessionStatus) {
+        // Cycle through the sessions, since sessions and session frequency types are one and the same, we will cycle through the session
+        // frequency types icons
+        // If index = 3 is reached, reset index back to 0
+        // if current duration is user-defined, the options to change frequency available
+        if (curSessionGroupIndex == 2) {
+            if (curFrequencyIndex == 3) {
+                curFrequencyIndex = 0;
+            }
+            // Else, decrement the index to reach the next session
+            else {
+                curFrequencyIndex += 1;
+            }
+            // Update the UI to reflect changes
+            updateSessionsMenu();
 
-    // if current duration is user-defined, the options to change frequency available
-    if (curSessionGroupIndex == 2) {
-        if (curFrequencyIndex == 3) {
-            curFrequencyIndex = 0;
+            qInfo("Frequency: %i", curFrequencyIndex);
         }
-        // Else, decrement the index to reach the next session
+
+        // if current duration is not user-defined
         else {
-            curFrequencyIndex += 1;
-        }
-        // Update the UI to reflect changes
-        updateSessionsMenu();
+            if (curSessionIndex == 3) {
+                curSessionIndex = 0;
+            }
+            // Else, decrement the index to reach the next session
+            else {
+                curSessionIndex += 1;
+            }
+            // Update the UI to reflect changes
+            updateSessionsMenu();
 
-        qInfo("Frequency: %i", curFrequencyIndex);
+            qInfo("Pre-defined session: %i", curSessionIndex);
+        }
     }
-
-    // if current duration is not user-defined
+    // Else, the Up/Down press will be used to adjust the Intensity Level
     else {
-        if (curSessionIndex == 3) {
-            curSessionIndex = 0;
+        if (curIntensity == 8) {
+            curIntensity = 1;
         }
-        // Else, decrement the index to reach the next session
         else {
-            curSessionIndex += 1;
+            curIntensity += 1;
         }
-        // Update the UI to reflect changes
-        updateSessionsMenu();
-
-        qInfo("Pre-defined session: %i", curSessionIndex);
+        // Update the UI to reflect the new Intensity level
+        updateIntensityUI();
     }
 }
 
@@ -507,9 +561,22 @@ void MainWindow:: handleSelectPress() {
 
 
 void MainWindow:: handleBatteryLow() {
-
-
-    //End session if session running, if during a session continuously keep calling the function///Continue blinking as well while ending session
+    // End session if session running, if during a session continuously keep calling the function
+    // Continue blinking as well while ending session
+    if (batteryLevel < 15) {
+        // Pause the session
+        sessionTimer.stop();
+        // Simulate the bar blinking continuously for a short time to indicate low battery level
+        for (int i = 0; i < 3; i++) {
+            displayBatteryLevel();
+        }
+        // Emit a timeout signal to end the session early
+        if(batteryLevel <= 0){
+            cout << "Battery is depleted, device powering off..." << endl;
+            handlePowerPress();
+        }
+        sessionTimer.QTimer::qt_metacall(QMetaObject::InvokeMetaMethod, 5, {});
+    }
 }
 
 void MainWindow::handleAddProfilePress()
@@ -544,6 +611,20 @@ void MainWindow::updatePerSecond() {
         ui->remainTimeN->setText(rtStr);
         qDebug() << "Remaining time: " << rtStr;
 
+        // Update and Display the battery level periodically while session is running
+        // and when the session is done
+        // prevRt is the rt (remaining time) when the battery level was last updated
+        if ((prevRt != rt) && ((rt % 10 == 0) || (rt == 0))) {
+            updateBatteryLevel(prevRt - rt);
+            // UI updates to display battery level, then show intensity level again
+            displayBatteryLevel();
+            updateIntensityUI();
+            qDebug() << "Previous RT: " << prevRt;
+            qDebug() << "Current RT: " << rt;
+            prevRt = rt;
+            // Check if battery is low and handle it accordingly
+            handleBatteryLow(); //End session if running, and continue blinking for a short period while ending session
+        }
     }
 }
 
@@ -636,6 +717,16 @@ void MainWindow:: updateSessionsMenu() {
     }
 
     updateModeUI();
+}
+
+// Function to make UI changes based on the current Intensity level
+void MainWindow::updateIntensityUI() {
+    // Turn off light for all Intensity numbers
+    for (int i = 1; i < 9; i++) {
+        pwrLightOff(i);
+    }
+    // Turn on the light for the Current Intensity Level
+    pwrLightOn(curIntensity);
 }
 
 // Functions for Session Group and Session Numbers UI changes:

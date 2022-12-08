@@ -13,6 +13,7 @@
 #include "ui_mainwindow.h"
 #include <QTimer>
 #include <QtDebug>
+#include <cmath>
 
 
 using namespace std;
@@ -52,6 +53,7 @@ private:
     int curIntensity; // indicates the intensity level
     int curFrequencyIndex; // indicates the currently highlighted frequency
     int curModeIndex; // indicates currently highlighted mode
+    int prevRt; // Previous Remaining Time, used in updatePerSecond() to save the remaining time when the battery was last updated
 
     QTimer sessionTimer; // timer for session durations;
     QTimer perSecondTimer; // timer which repeats every one second for updating the session timer remaining time
@@ -85,7 +87,7 @@ private:
     void updateSessionsMenu(); // updates the UI of the available sessions depending on the session group
     void startSession(); // starts the session functionality
     void displayBatteryLevel(); // displays the current battery level by checking the batteryLevel variable
-    void updateBatteryLevel(); // updates the batterylevel variable after
+    void updateBatteryLevel(int duration); // updates the batterylevel variable after
     void handleBatteryLow(); // handles the battery level low extension
     void startConnectionTest(); // to check device connection before session start
     void displayConnection(int connectionQuality); // displays connection strength on UI (on the numbers 1-4 bar)
@@ -100,6 +102,7 @@ private:
     void selectUser(); // handles the case where the user selects an existing profile
     void signIn(); // handles user sign-in
     void updateView(); //Updates user profile list
+    void updateIntensityUI(); // Update the UI based on current Intensity Level
 
     void solidConnection();
     void noConnection();
@@ -107,6 +110,7 @@ private:
 
     void pwrLightOn(int index); //turns the specified power light on
     void pwrLightOff(int index); //turns the specified power light off
+    void pwrLightOffAll(); //Power Light off for all numbers in the bar graph
     //changes the color of the light, can be private later or just cut&paste into different function.
     void greenLightOn(); //turns greenlight on
     void greenLightOff(); //turns the greenlight off
