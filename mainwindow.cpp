@@ -92,6 +92,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Default intensity Level
     curIntensity = 4;
+
+    // Set default value for inSession
+    inSessionStatus = false;
 }
 
 MainWindow::~MainWindow()
