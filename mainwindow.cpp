@@ -571,6 +571,10 @@ void MainWindow:: handleBatteryLow() {
             displayBatteryLevel();
         }
         // Emit a timeout signal to end the session early
+        if(batteryLevel <= 0){
+            cout << "Battery is depleted, device powering off..." << endl;
+            handlePowerPress();
+        }
         sessionTimer.QTimer::qt_metacall(QMetaObject::InvokeMetaMethod, 5, {});
     }
 }
