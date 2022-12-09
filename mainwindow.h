@@ -84,6 +84,8 @@ private:
     void promptSignIn(); // opens the sign in prompt for the user
     void standby(); // what does this function do?
 
+    void delay(int msecs); // function to use for time delays in milliseconds
+
     void updateSessionsMenu(); // updates the UI of the available sessions depending on the session group
     void startSession(); // starts the session functionality
     void displayBatteryLevel(); // displays the current battery level by checking the batteryLevel variable

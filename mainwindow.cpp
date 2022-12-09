@@ -145,11 +145,11 @@ void MainWindow::okayConnection(){
         pwrLightOn(4);
         pwrLightOn(5);
         pwrLightOn(6);
-        usleep(100000 * 2); //Sleeps for two seconds
+        delay(300); //Sleeps for two seconds
         pwrLightOff(4);
         pwrLightOff(5);
         pwrLightOff(6);
-        usleep(100000 * 2); //Sleeps for two seconds
+        delay(300); //Sleeps for two seconds
     }
 }
 
@@ -158,10 +158,10 @@ void MainWindow::noConnection(){
     for (int i =0; i < 4 ; ++i) {
         pwrLightOn(7);
         pwrLightOn(8);
-        usleep(100000 * 2); //Sleeps for two seconds
+        delay(300); //Sleeps for two seconds
         pwrLightOff(7);
         pwrLightOff(8);
-        usleep(100000 * 2); //Sleeps for two seconds
+        delay(300); //Sleeps for two seconds
     }
     //Scroll graph up and down to show unit returning to normal voltage (15-20 seconds)
     //to be continued
@@ -172,11 +172,11 @@ void MainWindow::solidConnection(){
         pwrLightOn(1);
         pwrLightOn(2);
         pwrLightOn(3);
-        usleep(100000 * 2); //Sleeps for two seconds
+        delay(300); //Sleeps for two seconds
         pwrLightOff(1);
         pwrLightOff(2);
         pwrLightOff(3);
-        usleep(100000 * 2); //Sleeps for two seconds
+        delay(300); //Sleeps for two seconds
     }
 }
 
@@ -364,6 +364,14 @@ void MainWindow:: startSession() {
 //    QTimer::singleShot(curDuration*1000,this,&MainWindow::promptToRecord);
 }
 
+void MainWindow:: delay(int millisecondsWait) {
+    QEventLoop loop;
+    QTimer t;
+    t.connect(&t, &QTimer::timeout, &loop, &QEventLoop::quit);
+    t.start(millisecondsWait);
+    loop.exec();
+}
+
 void MainWindow:: displayBatteryLevel() {
     // Turn off all other numbers in the bar graph
     pwrLightOffAll();
@@ -374,11 +382,11 @@ void MainWindow:: displayBatteryLevel() {
             pwrLightOn(1);
             pwrLightOn(2);
             pwrLightOn(3);
-            usleep(100000 * 2); //Sleeps for two seconds
+            delay(300); //Sleeps for two seconds
             pwrLightOff(1);
             pwrLightOff(2);
             pwrLightOff(3);
-            usleep(100000 * 2); //Sleeps for two seconds
+            delay(300); //Sleeps for two seconds
         }
     }
     else if (batteryLevel < 50 && batteryLevel >= 15) {
@@ -386,18 +394,18 @@ void MainWindow:: displayBatteryLevel() {
         for (int i =0; i < 2 ; ++i) {
             pwrLightOn(1);
             pwrLightOn(2);
-            usleep(100000 * 2); //Sleeps for two seconds
+            delay(300); //Sleeps for two seconds
             pwrLightOff(1);
             pwrLightOff(2);
-            usleep(100000 * 2); //Sleeps for two seconds
+            delay(300); //Sleeps for two seconds
         }
     }
     else if (batteryLevel < 15) {
         for (int i =0; i < 2 ; ++i) {
             pwrLightOn(1);
-            usleep(100000 * 2); //Sleeps for two seconds
+            delay(300); //Sleeps for two seconds
             pwrLightOff(1);
-            usleep(100000 * 2); //Sleeps for two seconds
+            delay(300); //Sleeps for two seconds
         }
     }
     cout << "Battery Level is at: "<< batteryLevel << endl;
