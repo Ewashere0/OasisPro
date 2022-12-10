@@ -451,7 +451,7 @@ border-radius: 1.5em;
      <enum>QTabWidget::Rounded</enum>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="selectProfileTab">
      <attribute name="title">
@@ -484,6 +484,29 @@ font: 75 10pt &quot;Ubuntu Condensed&quot;;</string>
         <string>Guest</string>
        </property>
       </item>
+     </widget>
+     <widget class="QComboBox" name="sessionSelector">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>70</y>
+        <width>221</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Ubuntu Condensed</family>
+        <pointsize>10</pointsize>
+        <weight>9</weight>
+        <italic>false</italic>
+        <bold>false</bold>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">background-color: rgb(229, 228, 0);
+font: 75 10pt &quot;Ubuntu Condensed&quot;;</string>
+      </property>
      </widget>
     </widget>
     <widget class="QWidget" name="addProfileTab">
@@ -976,6 +999,34 @@ border-radius: 1.5em;
     </property>
     <property name="text">
      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&amp;lt;Duration&amp;gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="selectSavedButton">
+    <property name="geometry">
+     <rect>
+      <x>80</x>
+      <y>350</y>
+      <width>57</width>
+      <height>57</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>35</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: #e5e400;
+border: 0.2em solid #80c3bf;
+min-height: 3em;
+max-height: 3em;
+min-width: 3em;
+max-width: 3em;
+border-radius: 1.5em;
+</string>
+    </property>
+    <property name="text">
+     <string>*</string>
     </property>
    </widget>
   </widget>

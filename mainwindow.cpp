@@ -21,6 +21,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->addProfileButton, SIGNAL(released()), this, SLOT (handleAddProfilePress()));
     connect(ui->modeButton, SIGNAL(released()), this, SLOT (handleModePress()));
     connect(ui->pwrButton, SIGNAL(pressed()), this, SLOT (handlePowerHold()));
+    connect(ui->selectButton, SIGNAL(pressed()), this, SLOT (handleSelectHold()));
+    connect(ui->profileSelector, SIGNAL(currentIndexChanged(int)), this, SLOT (selectUser()));
+    connect(ui->selectSavedButton, SIGNAL(released()), this, SLOT(handleSelectSavedPress()));
+
 
     // connect session timer to its handler
     connect(&sessionTimer, SIGNAL(timeout()), this, SLOT (promptToRecord()));
@@ -40,6 +44,7 @@ MainWindow::MainWindow(QWidget *parent)
     //Create user
     createUser(g.toStdString(), &guest);
     users.push_back(guest);
+    curUser = guest;
 
     cout <<"Profile: " << guest->getUsername() << " Added." <<endl;
 
@@ -51,6 +56,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->upButton->installEventFilter(this);
     ui->downButton->installEventFilter(this);
     ui->selectButton->installEventFilter(this);
+    ui->selectSavedButton->installEventFilter(this);
 
 
     // All available Session Frequency Ranges (can be used when the user wants to create a new Session in the User Designated group)
@@ -109,11 +115,6 @@ MainWindow::~MainWindow()
 
     delete ui;
 }
-
-//#define YELLOW "#e5e400"
-//#define RED "#fd0002"
-//#define GREEN "#00ed00"
-//#define BLUE "#80c3bf"
 
 void MainWindow:: startConnectionTest() {
     // DO SOMETHING
@@ -226,7 +227,25 @@ void MainWindow:: promptToRecord() {
 }
 
 void MainWindow:: recordTherapy() {
-    // DO SOMETHING
+    //don't save to guest profile
+    if (ui->profileSelector->currentIndex() == 0){
+        return;
+    }
+
+    Session* curSession;
+    // if curSessionGroupIndex is not 2 (user-defined), use the current pre-defined session with the curDuration
+    if(curSessionGroupIndex != 2) {
+        curSession = sessionTypes[curSessionIndex];
+    }
+
+    // user-selected frequency and mode chosen, along with user-selected duration
+    else {
+        curSession = new Session(sessionFreqRanges[curFrequencyIndex], cesModes[curModeIndex]);
+    }
+    Record* r = new Record(curSession, curDuration, curIntensity);
+    curUser->addRecord(r);
+    cout << *r << endl;
+    updateView();
 }
 
 void MainWindow:: createUser(string un, UserProfile** p) {
@@ -236,7 +255,13 @@ void MainWindow:: createUser(string un, UserProfile** p) {
 }
 
 void MainWindow:: selectUser() {
-    // DO SOMETHING
+    // avoid currentIndex = -1
+    if(ui->profileSelector->currentIndex() >= 0){
+        int idx = ui->profileSelector->currentIndex();
+        curUser = users.at(idx);
+        cout << "Selecting user: " << curUser->getUsername() << endl;
+    }
+
 }
 
 void MainWindow:: signIn() {
@@ -245,14 +270,14 @@ void MainWindow:: signIn() {
 
 void MainWindow::pwrLightOn(int index){
     switch(index){
-        case 1: ui->oneLabel->setStyleSheet("color: #00ed00");break;
-        case 2: ui->twoLabel->setStyleSheet("color: #00ed00");break;
-        case 3: ui->threeLabel->setStyleSheet("color: #00ed00");break;
-        case 4: ui->fourLabel->setStyleSheet("color: #e5e400");break;
-        case 5: ui->fiveLabel->setStyleSheet("color: #e5e400");break;
-        case 6: ui->sixLabel->setStyleSheet("color: #e5e400");break;
-        case 7: ui->sevenLabel->setStyleSheet("color: #fd0002");break;
-        case 8: ui->eightLabel->setStyleSheet("color: #fd0002");break;
+        case 1: ui->oneLabel->setStyleSheet("color: " GREEN ";");break;
+        case 2: ui->twoLabel->setStyleSheet("color: " GREEN ";");break;
+        case 3: ui->threeLabel->setStyleSheet("color: " GREEN ";");break;
+        case 4: ui->fourLabel->setStyleSheet("color: " YELLOW ";");break;
+        case 5: ui->fiveLabel->setStyleSheet("color: " YELLOW ";");break;
+        case 6: ui->sixLabel->setStyleSheet("color: " YELLOW ";");break;
+        case 7: ui->sevenLabel->setStyleSheet("color: " RED ";");break;
+        case 8: ui->eightLabel->setStyleSheet("color: " RED ";");break;
     }
     ui->pwrLvlSplitter->repaint();
 }
@@ -293,7 +318,7 @@ void MainWindow::togglePowerStatus() {
         batteryLevel = 100;
         greenLightOn();
         displayBatteryLevel();
-        updateSessionsMenu();
+        updateSessionsMenu(false);
     }
     else {
         greenLightOff();
@@ -325,7 +350,7 @@ void MainWindow:: updateBatteryLevel(int duration) {
     qInfo("Battery Level: %i", batteryLevel);
 }
 
-void MainWindow:: startSession() {
+void MainWindow:: startSession(bool saved) {
 
     // Use curSessionGroupIndex for the duration vector to get the chosen Duration
     // Use curSessionIndex for the sessionTypes vector to get the chosen Session object, which will contain the chosen
@@ -333,8 +358,6 @@ void MainWindow:: startSession() {
 
     inSessionStatus = true;
 
-    // Disable the select button when session starts
-    ui->selectButton->setEnabled(false);
     // Turn off all number lights, and turn on the light for the current Intensity level
     updateIntensityUI();
     // Set the Previous Remaining Time to be equal to the chosen duration
@@ -345,12 +368,39 @@ void MainWindow:: startSession() {
 
     // if curSessionGroupIndex is not 2 (user-defined), use the current pre-defined session with the curDuration
     if(curSessionGroupIndex != 2) {
-        curSession = sessionTypes[curSessionIndex];
+        if(!saved){
+            curSession = sessionTypes[curSessionIndex];
+        }
+        else{
+            int idx = ui->sessionSelector->currentIndex();
+            Record* r = curUser->getRecords().at(idx);
+            curSession = r->getSession();
+            string frequency = curSession->getFrequency();
+            string cesMode = curSession->getCesMode();
+            curIntensity = r->getIntensity();
+            curDuration = r->getDuration();
+
+            if (curDuration == 20){ curSessionGroupIndex = 0;}
+            else if (curDuration == 45) {curSessionGroupIndex = 1;}
+
+            if (frequency == "MET"){ curFrequencyIndex = 0;}
+            else if (frequency == "Sub-Delta"){ curFrequencyIndex = 1;}
+            else if (frequency == "Delta"){ curFrequencyIndex = 2;}
+            else if (frequency == "Theta"){ curFrequencyIndex = 3;}
+
+            if (cesMode == "Short-Pulse"){ curModeIndex = 0;}
+            else if (cesMode == "50% Duty Cycle"){ curModeIndex = 1;}
+
+
+            updateIntensityUI();
+            updateSessionsMenu(true);
+            updateModeUI();
+        }
     }
 
     // user-selected frequency and mode chosen, along with user-selected duration
     else {
-        curSession = new Session(sessionFreqRanges[curFrequencyIndex], cesModes[curModeIndex]);
+
     }
 
     // created a QTimer object in mainWindow on which you can call the QTimer functions
@@ -458,7 +508,7 @@ void MainWindow:: handlePowerPress() {
         }
 
         // Update the UI to reflect changes
-        updateSessionsMenu();
+        updateSessionsMenu(false);
 
 //        qInfo("Session Group: %i", curSessionGroupIndex);
     }
@@ -479,7 +529,7 @@ void MainWindow:: handleDownPress() {
                 curFrequencyIndex -= 1;
             }
             // Update the UI to reflect changes
-            updateSessionsMenu();
+            updateSessionsMenu(false);
 
             qInfo("Frequency: %i", curFrequencyIndex);
         }
@@ -494,7 +544,7 @@ void MainWindow:: handleDownPress() {
                 curSessionIndex -= 1;
             }
             // Update the UI to reflect changes
-            updateSessionsMenu();
+            updateSessionsMenu(false);
 
             qInfo("Pre-defined session: %i", curSessionIndex);
         }
@@ -527,7 +577,7 @@ void MainWindow:: handleUpPress() {
                 curFrequencyIndex += 1;
             }
             // Update the UI to reflect changes
-            updateSessionsMenu();
+            updateSessionsMenu(false);
 
             qInfo("Frequency: %i", curFrequencyIndex);
         }
@@ -542,7 +592,7 @@ void MainWindow:: handleUpPress() {
                 curSessionIndex += 1;
             }
             // Update the UI to reflect changes
-            updateSessionsMenu();
+            updateSessionsMenu(false);
 
             qInfo("Pre-defined session: %i", curSessionIndex);
         }
@@ -563,10 +613,24 @@ void MainWindow:: handleUpPress() {
 void MainWindow:: handleSelectPress() {
     // DO SOMETHING
     //Either start session or choose behaviour depending on mode
-    startSession();
+    if(!inSessionStatus){
+        startSession(false);
+    }
+    else{
+        int te = selectHoldTimer.elapsed();
+        if (te >= 1000){
+            recordTherapy();
+        }
+    }
 }
 
-
+void MainWindow:: handleSelectSavedPress() {
+    // DO SOMETHING
+    //Either start session or choose behaviour depending on mode
+    if(!inSessionStatus){
+        startSession(true);
+    }
+}
 
 void MainWindow:: handleBatteryLow() {
     // End session if session running, if during a session continuously keep calling the function
@@ -640,6 +704,10 @@ void MainWindow::handlePowerHold() {
     powerHoldTimer.start();
 }
 
+void MainWindow::handleSelectHold() {
+    selectHoldTimer.start();
+}
+
 /* ---------------------------------END OF SLOTS--------------------------- */
 
 
@@ -657,7 +725,15 @@ void MainWindow::updateView() {
         string temp = users.at(i)->getUsername();
         ui->profileSelector->addItem(QString::fromStdString(temp));
     }
+    ui->profileSelector->setCurrentIndex(ui->profileSelector->count() - 1);
 
+    ui->sessionSelector->clear();
+    vector<Record*> userRecords = curUser->getRecords();
+    for(int i = 0; i < int(userRecords.size()); ++i){
+        stringstream temp;
+        temp << *userRecords.at(i);
+        ui->sessionSelector->addItem(QString::fromStdString(temp.str()));
+    }
 }
 
 void MainWindow::updateModeUI() {
@@ -691,7 +767,7 @@ void MainWindow::updateModeUI() {
     ui->longPulse->repaint();
 }
 
-void MainWindow:: updateSessionsMenu() {
+void MainWindow:: updateSessionsMenu(bool fromSaved) {
     // Update UI when cycling through session groups
     allSessionGroupLightOff();
     switch (curSessionGroupIndex) {
@@ -704,7 +780,7 @@ void MainWindow:: updateSessionsMenu() {
     allFrequencyLightOff();
 
     // if current duration is user-defined, change light according to user-selected frequency and turn off number light of current session type
-    if (curSessionGroupIndex == 2) {
+    if (curSessionGroupIndex == 2 || fromSaved) {
         pwrLightOff(curSessionIndex+1);
         switch (curFrequencyIndex) {
             case 0: sessionMETLightOn(); break;
@@ -739,17 +815,17 @@ void MainWindow::updateIntensityUI() {
 
 // Functions for Session Group and Session Numbers UI changes:
 void MainWindow::groupTwentyMinLightOn() {
-    ui->twentyMinLabel->setStyleSheet("color: #e5e400;");
+    ui->twentyMinLabel->setStyleSheet("color: " YELLOW ";");
     ui->twentyMinLabel->repaint();
 }
 
 void MainWindow::groupFortyFiveMinLightOn() {
-    ui->fortyFiveMinLabel->setStyleSheet("color: #e5e400");
+    ui->fortyFiveMinLabel->setStyleSheet("color: " YELLOW ";");
     ui->fortyFiveMinLabel->repaint();
 }
 
 void MainWindow::groupUserDesignatedLightOn() {
-    ui->userDesignatedLabel->setStyleSheet("color: #e5e400;");
+    ui->userDesignatedLabel->setStyleSheet("color: " YELLOW ";");
     ui->userDesignatedLabel->repaint();
 }
 
@@ -765,22 +841,22 @@ void MainWindow::allSessionGroupLightOff() {
 }
 
 void MainWindow::sessionMETLightOn() {
-    ui->METLabel->setStyleSheet("color: #00ed00");
+    ui->METLabel->setStyleSheet("color: " GREEN ";");
     ui->METLabel->repaint();
 }
 
 void MainWindow::sessionSDeltaLightOn() {
-    ui->sDeltaLabel->setStyleSheet("color: #00ed00");
+    ui->sDeltaLabel->setStyleSheet("color: " GREEN ";");
     ui->sDeltaLabel->repaint();
 }
 
 void MainWindow::sessionDeltaLightOn() {
-    ui->deltaLabel->setStyleSheet("color: #00ed00");
+    ui->deltaLabel->setStyleSheet("color: " GREEN ";");
     ui->deltaLabel->repaint();
 }
 
 void MainWindow::sessionThetaLightOn() {
-    ui->thetaLabel->setStyleSheet("color: #00ed00");
+    ui->thetaLabel->setStyleSheet("color: " GREEN ";");
     ui->thetaLabel->repaint();
 }
 
@@ -800,23 +876,23 @@ void MainWindow::allFrequencyLightOff() {
 
 void MainWindow:: changeButtonStyles(QPushButton* btn, QEvent* event){
     if(event->type() == QEvent::Enter){
-         btn->setStyleSheet("color: #e5e400;"
-                                      "border: 0.2em solid #e6faf8;"
-                                      "min-height: 3em;"
-                                      "max-height: 3em;"
-                                      "min-width: 3em;"
-                                      "max-width: 3em;"
-                                      "border-radius: 1.5em;");
+         btn->setStyleSheet("color: " YELLOW ";"
+                            "border: 0.2em solid " LIGHTBLUE ";" ";"
+                            "min-height: 3em;"
+                            "max-height: 3em;"
+                            "min-width: 3em;"
+                            "max-width: 3em;"
+                            "border-radius: 1.5em;");
 
     }
     else if(event->type() == QEvent::Leave){
-        btn->setStyleSheet("color: #e5e400;"
-                                     "border: 0.2em solid #80c3bf;"
-                                     "min-height: 3em;"
-                                     "max-height: 3em;"
-                                     "min-width: 3em;"
-                                     "max-width: 3em;"
-                                     "border-radius: 1.5em;");
+        btn->setStyleSheet("color: " YELLOW ";"
+                           "border: 0.2em solid " BLUE ";" ";"
+                           "min-height: 3em;"
+                           "max-height: 3em;"
+                           "min-width: 3em;"
+                           "max-width: 3em;"
+                           "border-radius: 1.5em;");
 
    }
 }
@@ -830,7 +906,7 @@ void MainWindow::toggleButtonState(bool state) {
 }
 
 void MainWindow::greenLightOn(){
-    ui->pwrLight->setStyleSheet("background-color: #00ed00");
+    ui->pwrLight->setStyleSheet("background-color: " GREEN ";");
     ui->pwrLight->repaint();
 }
 
@@ -852,5 +928,16 @@ bool MainWindow:: eventFilter(QObject* obj, QEvent* event){
     else if(obj == (QObject*)ui->selectButton){
         changeButtonStyles(ui->selectButton, event);
     }
+    else if(obj == (QObject*)ui->selectSavedButton){
+        changeButtonStyles(ui->selectSavedButton, event);
+    }
     return QWidget::eventFilter(obj, event);
+}
+
+void MainWindow:: closeEvent(QCloseEvent *event){
+    saveData();
+}
+
+void MainWindow:: saveData(){
+    //write user to files
 }

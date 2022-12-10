@@ -14,6 +14,9 @@
 #include <QTimer>
 #include <QtDebug>
 #include <cmath>
+#include <QCloseEvent>
+#include <QMessageBox>
+#include <sstream>
 
 
 using namespace std;
@@ -22,6 +25,7 @@ using namespace std;
 #define RED "#fd0002"
 #define GREEN "#00ed00"
 #define BLUE "#80c3bf"
+#define LIGHTBLUE "#e6faf8"
 
 /* Change color instructions:
  * use the command ui->elementYourChanging->setStyleSheet("background-color : newColor");
@@ -54,10 +58,12 @@ private:
     int curFrequencyIndex; // indicates the currently highlighted frequency
     int curModeIndex; // indicates currently highlighted mode
     int prevRt; // Previous Remaining Time, used in updatePerSecond() to save the remaining time when the battery was last updated
+    UserProfile* curUser;
 
     QTimer sessionTimer; // timer for session durations;
     QTimer perSecondTimer; // timer which repeats every one second for updating the session timer remaining time
     QElapsedTimer powerHoldTimer; // timer to calculate time for power button hold
+    QElapsedTimer selectHoldTimer; // timer to calculate time for select button hold
 
     vector<string> sessionFreqRanges;
     vector<string> cesModes;
@@ -81,13 +87,18 @@ private:
     bool eventFilter(QObject* obj, QEvent* event);
     void changeButtonStyles(QPushButton* btn, QEvent* event);
 
+    void closeEvent(QCloseEvent *event);
+    void saveData();
+
     void promptSignIn(); // opens the sign in prompt for the user
     void standby(); // what does this function do?
 
+
+    void updateSessionsMenu(bool fromSaved); // updates the UI of the available sessions depending on the session group
+    void startSession(bool saved); // starts the session functionality
+
     void delay(int msecs); // function to use for time delays in milliseconds
 
-    void updateSessionsMenu(); // updates the UI of the available sessions depending on the session group
-    void startSession(); // starts the session functionality
     void displayBatteryLevel(); // displays the current battery level by checking the batteryLevel variable
     void updateBatteryLevel(int duration); // updates the batterylevel variable after
     void handleBatteryLow(); // handles the battery level low extension
@@ -101,7 +112,6 @@ private:
     void savePreferences(); // saves the user's preferred intensity (where?)
     void recordTherapy(); // records the therapy session information (duration, frequency, type)
     void createUser(string un, UserProfile**); // handles the new user profile creation
-    void selectUser(); // handles the case where the user selects an existing profile
     void signIn(); // handles user sign-in
     void updateView(); //Updates user profile list
     void updateIntensityUI(); // Update the UI based on current Intensity Level
@@ -135,6 +145,7 @@ private:
 private slots:
 
     void handlePowerHold(); // handles the event where power button is pressed and starts timer
+    void handleSelectHold(); // handles the event where select button is pressed and starts timer
 
     void promptToRecord(); // post session, prompts user if they wish to record the just completed session
 
@@ -145,6 +156,7 @@ private slots:
     void handleDownPress(); // handles the down button press for selecting session type
     void handleUpPress(); // handles the up button press for selecting session type
     void handleSelectPress(); // handles the select button press to confirm the session start
+    void handleSelectSavedPress();
 
     //do something when the add profile button is clicked
     void handleAddProfilePress();
@@ -153,6 +165,7 @@ private slots:
     void handleModePress();
 
     //slot when user selects a profile
+    void selectUser(); // handles the case where the user selects an existing profile
 
 private:
     Ui::MainWindow *ui;
