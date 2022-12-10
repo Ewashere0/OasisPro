@@ -13,6 +13,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->pwrButton->setEnabled(true);
     toggleButtonState(powerStatus);
 
+
     // Connect buttons to slot functions
     connect(ui->pwrButton, SIGNAL(released()), this, SLOT (handlePowerPress()));
     connect(ui->upButton, SIGNAL(released()), this, SLOT (handleUpPress()));
@@ -826,7 +827,30 @@ void MainWindow::groupFortyFiveMinLightOn() {
 
 void MainWindow::groupUserDesignatedLightOn() {
     ui->userDesignatedLabel->setStyleSheet("color: " YELLOW ";");
-    ui->userDesignatedLabel->repaint();
+    ui->timeComboBox->setStyleSheet("selection-color: rgb(0, 0, 0);"
+                                    "background-color:" YELLOW ";");
+    ui->timeComboBox->setEnabled(true);
+    ui->modeButton->setEnabled(true);
+    ui->selectSavedButton->setEnabled(true);
+    ui->modeButton->setStyleSheet("color: #e5e400;"
+                                  "border: 0.2em solid #80c3bf;");
+    ui->selectSavedButton->setStyleSheet("color: #e5e400;"
+                                         "border-radius: 1.5em;"
+                                         "border: 0.2em solid #80c3bf;");
+    ui->centralwidget->repaint();
+}
+void MainWindow::groupUserDesignatedLightOff(){
+    ui->userDesignatedLabel->setStyleSheet("color:grey;");
+    ui->timeComboBox->setStyleSheet("color:black;"
+                                    "background-color: black;");
+    ui->timeComboBox->setEnabled(false);
+    ui->modeButton->setEnabled(false);
+    ui->selectSavedButton->setEnabled(false);
+    ui->modeButton->setStyleSheet("color: black;"
+                                  "border: 0.2em solid black;");
+    ui->selectSavedButton->setStyleSheet("color: black;"
+                                         "border: 0.2em solid black;");
+    ui->centralwidget->repaint();
 }
 
 void MainWindow::allSessionGroupLightOff() {
@@ -836,8 +860,7 @@ void MainWindow::allSessionGroupLightOff() {
     ui->fortyFiveMinLabel->setStyleSheet("color: grey");
     ui->fortyFiveMinLabel->repaint();
 
-    ui->userDesignatedLabel->setStyleSheet("color: grey");
-    ui->userDesignatedLabel->repaint();
+    groupUserDesignatedLightOff();
 }
 
 void MainWindow::sessionMETLightOn() {
@@ -928,7 +951,7 @@ bool MainWindow:: eventFilter(QObject* obj, QEvent* event){
     else if(obj == (QObject*)ui->selectButton){
         changeButtonStyles(ui->selectButton, event);
     }
-    else if(obj == (QObject*)ui->selectSavedButton){
+    else if(obj == (QObject*)ui->selectSavedButton && ui->selectSavedButton->isEnabled()){
         changeButtonStyles(ui->selectSavedButton, event);
     }
     return QWidget::eventFilter(obj, event);

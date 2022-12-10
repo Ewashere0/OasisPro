@@ -477,7 +477,8 @@ border-radius: 1.5em;
       </property>
       <property name="styleSheet">
        <string notr="true">background-color: rgb(229, 228, 0);
-font: 75 10pt &quot;Ubuntu Condensed&quot;;</string>
+font: 75 10pt &quot;Ubuntu Condensed&quot;;
+selection-color: rgb(0, 0, 0);</string>
       </property>
       <item>
        <property name="text">
@@ -505,7 +506,8 @@ font: 75 10pt &quot;Ubuntu Condensed&quot;;</string>
       </property>
       <property name="styleSheet">
        <string notr="true">background-color: rgb(229, 228, 0);
-font: 75 10pt &quot;Ubuntu Condensed&quot;;</string>
+font: 75 10pt &quot;Ubuntu Condensed&quot;;
+selection-color: rgb(0, 0, 0);</string>
       </property>
      </widget>
     </widget>
@@ -1016,18 +1018,49 @@ border-radius: 1.5em;
      </font>
     </property>
     <property name="styleSheet">
-     <string notr="true">color: #e5e400;
-border: 0.2em solid #80c3bf;
+     <string notr="true">color: black;
+border: 0.2em solid black;
 min-height: 3em;
 max-height: 3em;
 min-width: 3em;
 max-width: 3em;
-border-radius: 1.5em;
 </string>
     </property>
     <property name="text">
      <string>*</string>
     </property>
+   </widget>
+   <widget class="QComboBox" name="timeComboBox">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>370</x>
+      <y>60</y>
+      <width>72</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: rgb(0, 0, 0);
+border-color:black;</string>
+    </property>
+    <item>
+     <property name="text">
+      <string>20</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>45</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>60</string>
+     </property>
+    </item>
    </widget>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>

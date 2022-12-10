@@ -134,6 +134,7 @@ private:
     void groupTwentyMinLightOn();
     void groupFortyFiveMinLightOn();
     void groupUserDesignatedLightOn();
+    void groupUserDesignatedLightOff();
     void allSessionGroupLightOff();
     // Functions to change colors for the Session Icons (i.e. Session Frequency Types Icons) when cycling through the sessions
     void sessionMETLightOn();
