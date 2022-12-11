@@ -90,7 +90,7 @@ private:
     void closeEvent(QCloseEvent *event);
     void saveData();
 
-    void promptSignIn(); // opens the sign in prompt for the user
+
     void standby(); // what does this function do?
 
 
@@ -107,14 +107,11 @@ private:
     void connectionInvalid(); // handles the case where connection status is low
     void connectionValid(); // confirms that connection is valid so session can start
     void endConnectionTest(); // ends the connection test
-    void continueSession(); // continues the session (maybe have a countdown for the duration?)
-    void updateIntensity(); // updates the currentIntensity variable according to user input
-    void savePreferences(); // saves the user's preferred intensity (where?)
     void recordTherapy(); // records the therapy session information (duration, frequency, type)
     void createUser(string un, UserProfile**); // handles the new user profile creation
-    void signIn(); // handles user sign-in
     void updateView(); //Updates user profile list
     void updateIntensityUI(); // Update the UI based on current Intensity Level
+    void setDuration();
 
     void solidConnection();
     void noConnection();
@@ -145,6 +142,7 @@ private:
 
 private slots:
 
+    void promptSignIn(); // opens the sign in prompt for the user
     void handlePowerHold(); // handles the event where power button is pressed and starts timer
     void handleSelectHold(); // handles the event where select button is pressed and starts timer
 

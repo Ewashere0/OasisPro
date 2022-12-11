@@ -23,8 +23,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->modeButton, SIGNAL(released()), this, SLOT (handleModePress()));
     connect(ui->pwrButton, SIGNAL(pressed()), this, SLOT (handlePowerHold()));
     connect(ui->selectButton, SIGNAL(pressed()), this, SLOT (handleSelectHold()));
-    connect(ui->profileSelector, SIGNAL(currentIndexChanged(int)), this, SLOT (selectUser()));
+    //connect(ui->profileSelector, SIGNAL(currentIndexChanged(int)), this, SLOT (selectUser()));
     connect(ui->selectSavedButton, SIGNAL(released()), this, SLOT(handleSelectSavedPress()));
+    connect(ui->timeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT (setDuration())); //Sets user defined time to cur duration upon change
+    connect(ui->signInButton, SIGNAL(released()), this, SLOT(promptSignIn()));
 
 
     // connect session timer to its handler
@@ -195,17 +197,6 @@ void MainWindow:: endConnectionTest() {
     // DO SOMETHING
 }
 
-void MainWindow:: continueSession() {
-    // DO SOMETHING
-}
-
-void MainWindow:: updateIntensity() {
-    // DO SOMETHING
-}
-
-void MainWindow:: savePreferences() {
-    // DO SOMETHING
-}
 
 // Triggered after startSession() - when a session have just finished
 void MainWindow:: promptToRecord() {
@@ -232,7 +223,8 @@ void MainWindow:: promptToRecord() {
 
 void MainWindow:: recordTherapy() {
     //don't save to guest profile
-    if (ui->profileSelector->currentIndex() == 0){
+    if (curUser->getUsername() == "Guest"){
+        cout << "Please Sign Into a Profile to Save Session. (Cannot save session as 'Guest')" << endl;
         return;
     }
 
@@ -260,16 +252,13 @@ void MainWindow:: createUser(string un, UserProfile** p) {
 
 void MainWindow:: selectUser() {
     // avoid currentIndex = -1
+
     if(ui->profileSelector->currentIndex() >= 0){
         int idx = ui->profileSelector->currentIndex();
         curUser = users.at(idx);
         cout << "Selecting user: " << curUser->getUsername() << endl;
     }
 
-}
-
-void MainWindow:: signIn() {
-    // DO SOMETHING
 }
 
 void MainWindow::pwrLightOn(int index){
@@ -311,15 +300,13 @@ void MainWindow::pwrLightOffAll() {
     ui->eightLabel->setStyleSheet("color: grey");
 }
 
-
-
 void MainWindow::togglePowerStatus() {
     powerStatus = !powerStatus;
     toggleButtonState(powerStatus);
     if (powerStatus) {
         // The device always turn on with a full battery - assume that the user charges the device after turning it off
         // This is the Default Battery Level
-        batteryLevel = 20;
+        batteryLevel = 70;
         greenLightOn();
         displayBatteryLevel();
         updateSessionsMenu(false);
@@ -329,17 +316,11 @@ void MainWindow::togglePowerStatus() {
         // Turn off all session groups and session numbers icons when turned off
         allSessionGroupLightOff();
         allFrequencyLightOff();
-
-        pwrLightOff(curSessionIndex+1);
+        pwrLightOffAll();
     }
 }
 
-void MainWindow:: promptSignIn() {
-    // DO SOMETHING
-    //Force users to make or select profile. Or select Guest
 
-    //DEPRECATED
-}
 
 void MainWindow:: standby() {
     // DO SOMETHING
@@ -370,41 +351,33 @@ void MainWindow:: startSession(bool saved) {
     Session *curSession;
     sessionTimer.setSingleShot(true);
 
-    // if curSessionGroupIndex is not 2 (user-defined), use the current pre-defined session with the curDuration
-    if(curSessionGroupIndex != 2) {
-        if(!saved){
-            curSession = sessionTypes[curSessionIndex];
-        }
-        else{
-            int idx = ui->sessionSelector->currentIndex();
-            Record* r = curUser->getRecords().at(idx);
-            curSession = r->getSession();
-            string frequency = curSession->getFrequency();
-            string cesMode = curSession->getCesMode();
-            curIntensity = r->getIntensity();
-            curDuration = r->getDuration();
 
-            if (curDuration == 20){ curSessionGroupIndex = 0;}
-            else if (curDuration == 45) {curSessionGroupIndex = 1;}
-
-            if (frequency == "MET"){ curFrequencyIndex = 0;}
-            else if (frequency == "Sub-Delta"){ curFrequencyIndex = 1;}
-            else if (frequency == "Delta"){ curFrequencyIndex = 2;}
-            else if (frequency == "Theta"){ curFrequencyIndex = 3;}
-
-            if (cesMode == "Short-Pulse"){ curModeIndex = 0;}
-            else if (cesMode == "50% Duty Cycle"){ curModeIndex = 1;}
-
-
-            updateIntensityUI();
-            updateSessionsMenu(true);
-            updateModeUI();
-        }
+    if(!saved){
+        curSession = sessionTypes[curSessionIndex];
     }
+    else{
+        int idx = ui->sessionSelector->currentIndex();
+        Record* r = curUser->getRecords().at(idx);
+        curSession = r->getSession();
+        string frequency = curSession->getFrequency();
+        string cesMode = curSession->getCesMode();
+        curIntensity = r->getIntensity();
+        curDuration = r->getDuration();
 
-    // user-selected frequency and mode chosen, along with user-selected duration
-    else {
+        if (curDuration == 20){ curSessionGroupIndex = 0;} //Retrieving records and setting them as session variables.
+        else if (curDuration == 45) {curSessionGroupIndex = 1;}
 
+        if (frequency == "MET"){ curFrequencyIndex = 0;}
+        else if (frequency == "Sub-Delta"){ curFrequencyIndex = 1;}
+        else if (frequency == "Delta"){ curFrequencyIndex = 2;}
+        else if (frequency == "Theta"){ curFrequencyIndex = 3;}
+
+        if (cesMode == "Short-Pulse"){ curModeIndex = 0;}
+        else if (cesMode == "50% Duty Cycle"){ curModeIndex = 1;}
+
+        updateIntensityUI();
+        updateSessionsMenu(true);
+        updateModeUI();
     }
 
     // created a QTimer object in mainWindow on which you can call the QTimer functions
@@ -467,6 +440,23 @@ void MainWindow:: displayBatteryLevel() {
 
 /* --------------------------------START OF SLOTS--------------------------------- */
 
+void MainWindow:: promptSignIn() {
+
+    //Force users to make or select profile. Or select Guest
+
+    if (ui->profileSelector->currentIndex() == 0) {
+        cout << "Select a profile to sign in. ('Guest' is not a profile.)" <<endl;
+        signedInStatus = false;
+    } else {
+        selectUser();
+        //ui->tabWidget->setEnabled(false);
+        signedInStatus = true;
+        updateView();
+    }
+
+}
+
+
 void MainWindow:: handlePowerPress() {
     // turn on device
     if (!powerStatus) {
@@ -485,39 +475,43 @@ void MainWindow:: handlePowerPress() {
             togglePowerStatus();
             return;
         }
-
         // Cycle through the session groups, since the only difference between the groups is duration, only the durations vector will be cycled through
         // If the end of the array is reached, set index back to 0
-        else if (curSessionGroupIndex == 2) {
-            curSessionGroupIndex = 0;
-            curDuration = durations[curSessionGroupIndex]; // Set current duration accordingly
+        if (!inSessionStatus) {
+            if (curSessionGroupIndex == 2) {
+                curSessionGroupIndex = 0;
 
-            // disable mode change button
-            ui->modeButton->setEnabled(false);
-        }
-        // Else, increment the index to reach the next duration, which indicates the next session group
-        else {
-            curSessionGroupIndex += 1;
-            curDuration = durations[curSessionGroupIndex]; // Set current duration accordingly
+                // disable mode change button
+                ui->modeButton->setEnabled(false);
+            }
+            // Else, increment the index to reach the next duration, which indicates the next session group
+            else {
+                curSessionGroupIndex += 1;
+                // disable mode change button
+                ui->modeButton->setEnabled(false);
+            }
+            // If the User Designated Group is chosen, allow the user to choose a custom duration, session frequency type and ces mode
+            if (curSessionGroupIndex == 2) {
+               // enable mode change button
+               ui->modeButton->setEnabled(true);
+               // Add the duration from the dropdown box to the durations vector
+               durations[2] = ui->timeComboBox->currentText().toInt();
 
-            // disable mode change button
-            ui->modeButton->setEnabled(false);
+            }
         }
 
-        // If the User Designated Group is chosen, allow the user to choose a custom duration, session frequency type and ces mode
-        if (curSessionGroupIndex == 2) {
-           // enable mode change button
-           ui->modeButton->setEnabled(true);
-           // Add the duration from the dropdown box to the durations vector
-//           durations[2] = ui->timeComboBox->currentText();
-           qDebug() << ui->timeComboBox->currentText().toInt();
-        }
+        curDuration = durations[curSessionGroupIndex]; // Set current duration accordingly
 
         // Update the UI to reflect changes
         updateSessionsMenu(false);
 
 //        qInfo("Session Group: %i", curSessionGroupIndex);
     }
+}
+
+void MainWindow:: setDuration() {
+     durations[2] = ui->timeComboBox->currentText().toInt(); //Sets new user defined duration for new session
+     curDuration = durations[curSessionGroupIndex];
 }
 
 void MainWindow:: handleDownPress() {
@@ -625,7 +619,11 @@ void MainWindow:: handleSelectPress() {
     else{
         int te = selectHoldTimer.elapsed();
         if (te >= 1000){
-            recordTherapy();
+            if (!signedInStatus){
+                cout << "Please Sign in Before Attempting to Record Therapies." <<endl;
+            } else {
+                recordTherapy();
+            }
         }
     }
 }
@@ -687,7 +685,6 @@ void MainWindow::updatePerSecond() {
 
         QString rtStr = QString::number(rt) + ":00";
         ui->remainTimeN->setText(rtStr);
-        qDebug() << "Remaining time: " << rtStr;
 
         // Update and Display the battery level periodically while session is running
         // and when the session is done
@@ -700,8 +697,8 @@ void MainWindow::updatePerSecond() {
                 displayBatteryLevel();
                 updateIntensityUI();
             }
-            qDebug() << "Previous RT: " << prevRt;
-            qDebug() << "Current RT: " << rt;
+//            qDebug() << "Previous RT: " << prevRt;
+//            qDebug() << "Current RT: " << rt;
             prevRt = rt;
             // Check if battery is low and handle it accordingly
             handleBatteryLow(); //End session if running, and continue blinking for a short period while ending session
@@ -734,7 +731,6 @@ void MainWindow::updateView() {
         string temp = users.at(i)->getUsername();
         ui->profileSelector->addItem(QString::fromStdString(temp));
     }
-    ui->profileSelector->setCurrentIndex(ui->profileSelector->count() - 1);
 
     ui->sessionSelector->clear();
     vector<Record*> userRecords = curUser->getRecords();

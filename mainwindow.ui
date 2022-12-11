@@ -486,28 +486,17 @@ selection-color: rgb(0, 0, 0);</string>
        </property>
       </item>
      </widget>
-     <widget class="QComboBox" name="sessionSelector">
+     <widget class="QPushButton" name="signInButton">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>70</y>
-        <width>221</width>
-        <height>31</height>
+        <x>70</x>
+        <y>60</y>
+        <width>101</width>
+        <height>41</height>
        </rect>
       </property>
-      <property name="font">
-       <font>
-        <family>Ubuntu Condensed</family>
-        <pointsize>10</pointsize>
-        <weight>9</weight>
-        <italic>false</italic>
-        <bold>false</bold>
-       </font>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">background-color: rgb(229, 228, 0);
-font: 75 10pt &quot;Ubuntu Condensed&quot;;
-selection-color: rgb(0, 0, 0);</string>
+      <property name="text">
+       <string>SignIn</string>
       </property>
      </widget>
     </widget>
@@ -1061,6 +1050,30 @@ border-color:black;</string>
       <string>60</string>
      </property>
     </item>
+   </widget>
+   <widget class="QComboBox" name="sessionSelector">
+    <property name="geometry">
+     <rect>
+      <x>790</x>
+      <y>110</y>
+      <width>221</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Ubuntu Condensed</family>
+      <pointsize>10</pointsize>
+      <weight>9</weight>
+      <italic>false</italic>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(229, 228, 0);
+font: 75 10pt &quot;Ubuntu Condensed&quot;;
+selection-color: rgb(0, 0, 0);</string>
+    </property>
    </widget>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
