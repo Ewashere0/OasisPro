@@ -214,6 +214,9 @@ void MainWindow:: promptToRecord() {
     // testing timer
     cout << "Timer finished now!" << endl;
 
+    // Display the battery level at the end of the session
+    displayBatteryLevel();
+
     inSessionStatus = false;
     // Enable the Select button after session is done
     ui->selectButton->setEnabled(true);
@@ -316,7 +319,7 @@ void MainWindow::togglePowerStatus() {
     if (powerStatus) {
         // The device always turn on with a full battery - assume that the user charges the device after turning it off
         // This is the Default Battery Level
-        batteryLevel = 100;
+        batteryLevel = 20;
         greenLightOn();
         displayBatteryLevel();
         updateSessionsMenu(false);
@@ -503,9 +506,11 @@ void MainWindow:: handlePowerPress() {
 
         // If the User Designated Group is chosen, allow the user to choose a custom duration, session frequency type and ces mode
         if (curSessionGroupIndex == 2) {
-           // DO SOMETHING
            // enable mode change button
            ui->modeButton->setEnabled(true);
+           // Add the duration from the dropdown box to the durations vector
+//           durations[2] = ui->timeComboBox->currentText();
+           qDebug() << ui->timeComboBox->currentText().toInt();
         }
 
         // Update the UI to reflect changes
@@ -640,7 +645,7 @@ void MainWindow:: handleBatteryLow() {
         // Pause the session
         sessionTimer.stop();
         // Simulate the bar blinking continuously for a short time to indicate low battery level
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 2; i++) {
             displayBatteryLevel();
         }
         // Emit a timeout signal to end the session early
@@ -687,11 +692,14 @@ void MainWindow::updatePerSecond() {
         // Update and Display the battery level periodically while session is running
         // and when the session is done
         // prevRt is the rt (remaining time) when the battery level was last updated
-        if ((prevRt != rt) && ((rt % 10 == 0) || (rt == 0))) {
+        if ((prevRt != rt) && (rt % 10 == 0)) {
             updateBatteryLevel(prevRt - rt);
-            // UI updates to display battery level, then show intensity level again
-            displayBatteryLevel();
-            updateIntensityUI();
+            // If there is remaining time left:
+            if (rt > 0) {
+                // UI updates to display battery level, then show intensity level again
+                displayBatteryLevel();
+                updateIntensityUI();
+            }
             qDebug() << "Previous RT: " << prevRt;
             qDebug() << "Current RT: " << rt;
             prevRt = rt;
@@ -807,9 +815,7 @@ void MainWindow:: updateSessionsMenu(bool fromSaved) {
 // Function to make UI changes based on the current Intensity level
 void MainWindow::updateIntensityUI() {
     // Turn off light for all Intensity numbers
-    for (int i = 1; i < 9; i++) {
-        pwrLightOff(i);
-    }
+    pwrLightOffAll();
     // Turn on the light for the Current Intensity Level
     pwrLightOn(curIntensity);
 }
