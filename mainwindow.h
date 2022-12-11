@@ -64,6 +64,7 @@ private:
     QTimer perSecondTimer; // timer which repeats every one second for updating the session timer remaining time
     QElapsedTimer powerHoldTimer; // timer to calculate time for power button hold
     QElapsedTimer selectHoldTimer; // timer to calculate time for select button hold
+    QElapsedTimer idleTimer; // timer to check if device has been idle for 120 secs or more, if so, turn it off
 
     vector<string> sessionFreqRanges;
     vector<string> cesModes;
@@ -82,6 +83,8 @@ private:
 
     void togglePowerStatus(); // changes the power status (ON/OFF) and the UI accordingly
 
+    void init(); // Initializes the system variables at power on
+
     void toggleButtonState(bool state); // enables/disables the buttons, except for holdButton (always enabled)
 
     bool eventFilter(QObject* obj, QEvent* event);
@@ -96,6 +99,7 @@ private:
 
     void updateSessionsMenu(bool fromSaved); // updates the UI of the available sessions depending on the session group
     void startSession(bool saved); // starts the session functionality
+    void softOff(); // session soft off functionality
 
     void delay(int msecs); // function to use for time delays in milliseconds
 
@@ -111,7 +115,7 @@ private:
     void createUser(string un, UserProfile**); // handles the new user profile creation
     void updateView(); //Updates user profile list
     void updateIntensityUI(); // Update the UI based on current Intensity Level
-    void setDuration();
+
 
     void solidConnection();
     void noConnection();
@@ -165,6 +169,10 @@ private slots:
 
     //slot when user selects a profile
     void selectUser(); // handles the case where the user selects an existing profile
+
+    void handleChargePress(); // sets battery level to 100 on press
+
+    void setDuration();
 
 private:
     Ui::MainWindow *ui;

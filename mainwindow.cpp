@@ -28,6 +28,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->timeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT (setDuration())); //Sets user defined time to cur duration upon change
     connect(ui->signInButton, SIGNAL(released()), this, SLOT(promptSignIn()));
 
+    connect(ui->chargeButton, SIGNAL(released()), this, SLOT(handleChargePress()));
+
 
     // connect session timer to its handler
     connect(&sessionTimer, SIGNAL(timeout()), this, SLOT (promptToRecord()));
@@ -85,26 +87,32 @@ MainWindow::MainWindow(QWidget *parent)
         }
     }
 
-    // Indexes used to cycle through different Session Groups and Sessions when the user pressed the Power or Up and Down buttons
-    curSessionGroupIndex = 0;
-    curSessionIndex = 0;
+    // initalizing battery level to 100. After this, battery will have to be charged manually using the battery charge button
+    batteryLevel = 100;
 
-    // Indexes used to cycle through different frequencies and toggle between the two different modes
-    curFrequencyIndex = 0;
-    curModeIndex = 0;
+    init();
 
     // Updating mode UI as set for default value
     updateModeUI();
-
-    // Setting current duration according to current session group selected
-    curDuration = durations[curSessionGroupIndex];
-
-    // Default intensity Level
-    curIntensity = 4;
-
-    // Set default value for inSession
-    inSessionStatus = false;
 }
+
+void MainWindow::init() {
+     curSessionGroupIndex = 0; // Default duration is 20 mins
+
+     curSessionIndex = 0; // Current session number (1-8) is 1
+
+     curFrequencyIndex = 0; // Current selected frequency (if session group is user-defined) is "MET" (index 0)
+
+     curModeIndex = 0; // Default mode for user-defined sessions
+
+    curDuration = durations[curSessionGroupIndex]; // setting default duration
+
+    curIntensity = 4; // Setting default intensity on start up
+    inSessionStatus = false;
+
+    // setting session time label to 00:00 as default on start-up
+    ui->remainTimeN->setText("00:00");
+    }
 
 MainWindow::~MainWindow()
 {
@@ -290,14 +298,9 @@ void MainWindow::pwrLightOff(int index){
 }
 
 void MainWindow::pwrLightOffAll() {
-    ui->oneLabel->setStyleSheet("color: grey");
-    ui->twoLabel->setStyleSheet("color: grey");
-    ui->threeLabel->setStyleSheet("color: grey");
-    ui->fourLabel->setStyleSheet("color: grey");
-    ui->fiveLabel->setStyleSheet("color: grey");
-    ui->sixLabel->setStyleSheet("color: grey");
-    ui->sevenLabel->setStyleSheet("color: grey");
-    ui->eightLabel->setStyleSheet("color: grey");
+    for (int i=1; i<9; i++) {
+             pwrLightOff(i);
+         }
 }
 
 void MainWindow::togglePowerStatus() {
@@ -306,16 +309,27 @@ void MainWindow::togglePowerStatus() {
     if (powerStatus) {
         // The device always turn on with a full battery - assume that the user charges the device after turning it off
         // This is the Default Battery Level
-        batteryLevel = 70;
+        init();
+        idleTimer.restart();
+
         greenLightOn();
         displayBatteryLevel();
         updateSessionsMenu(false);
     }
     else {
+
         greenLightOff();
         // Turn off all session groups and session numbers icons when turned off
         allSessionGroupLightOff();
         allFrequencyLightOff();
+        // stop ongoing session
+        if (inSessionStatus) {
+            inSessionStatus = false;
+            sessionTimer.stop();
+
+            // Set remaining time to 00:00
+            ui->remainTimeN->setText("00:00");
+        }
         pwrLightOffAll();
     }
 }
@@ -390,6 +404,25 @@ void MainWindow:: startSession(bool saved) {
     //when session is started, will do a timer and on the end of timer, user will be prompted to record.
 //    QTimer::singleShot(curDuration*1000,this,&MainWindow::promptToRecord);
 }
+
+// stops/ends the current session
+ void MainWindow::softOff() {
+     inSessionStatus = false;
+     sessionTimer.stop();
+
+     // Set remaining time to 00:00
+     ui->remainTimeN->setText("00:00");
+
+     // lights go from 8 to 1 for power off indication
+     for (int i=8; i>=1; i--) {
+         pwrLightOffAll();
+         pwrLightOn(i);
+         delay(300);
+     }
+
+     togglePowerStatus();
+ }
+
 
 void MainWindow:: delay(int millisecondsWait) {
     QEventLoop loop;
@@ -498,6 +531,11 @@ void MainWindow:: handlePowerPress() {
                durations[2] = ui->timeComboBox->currentText().toInt();
 
             }
+        }
+
+        else {
+            softOff();
+            return;
         }
 
         curDuration = durations[curSessionGroupIndex]; // Set current duration accordingly
@@ -614,6 +652,8 @@ void MainWindow:: handleSelectPress() {
     // DO SOMETHING
     //Either start session or choose behaviour depending on mode
     if(!inSessionStatus){
+        // according to manual, session begins after a 5 sec delay
+        delay(5000);
         startSession(false);
     }
     else{
@@ -680,28 +720,37 @@ void MainWindow::handleModePress() {
 }
 
 void MainWindow::updatePerSecond() {
-    if (sessionTimer.isActive()) {
-        int rt = sessionTimer.remainingTime() / 1000;
 
-        QString rtStr = QString::number(rt) + ":00";
-        ui->remainTimeN->setText(rtStr);
+    // if device is idle for more than 120 secs, then it is turned off
+    if (powerStatus && idleTimer.hasExpired(120 * 1000) && !inSessionStatus) {
+        togglePowerStatus();
+        return;
+    }
 
-        // Update and Display the battery level periodically while session is running
-        // and when the session is done
-        // prevRt is the rt (remaining time) when the battery level was last updated
-        if ((prevRt != rt) && (rt % 10 == 0)) {
-            updateBatteryLevel(prevRt - rt);
-            // If there is remaining time left:
-            if (rt > 0) {
-                // UI updates to display battery level, then show intensity level again
-                displayBatteryLevel();
-                updateIntensityUI();
+    if(inSessionStatus) {
+        if (sessionTimer.isActive()) {
+            int rt = sessionTimer.remainingTime() / 1000;
+
+            QString rtStr = QString::number(rt) + ":00";
+            ui->remainTimeN->setText(rtStr);
+
+            // Update and Display the battery level periodically while session is running
+            // and when the session is done
+            // prevRt is the rt (remaining time) when the battery level was last updated
+            if ((prevRt != rt) && (rt % 10 == 0)) {
+                updateBatteryLevel(prevRt - rt);
+                // If there is remaining time left:
+                if (rt > 0) {
+                    // UI updates to display battery level, then show intensity level again
+                    displayBatteryLevel();
+                    updateIntensityUI();
+                }
+    //            qDebug() << "Previous RT: " << prevRt;
+    //            qDebug() << "Current RT: " << rt;
+                prevRt = rt;
+                // Check if battery is low and handle it accordingly
+                handleBatteryLow(); //End session if running, and continue blinking for a short period while ending session
             }
-//            qDebug() << "Previous RT: " << prevRt;
-//            qDebug() << "Current RT: " << rt;
-            prevRt = rt;
-            // Check if battery is low and handle it accordingly
-            handleBatteryLow(); //End session if running, and continue blinking for a short period while ending session
         }
     }
 }
@@ -713,6 +762,12 @@ void MainWindow::handlePowerHold() {
 void MainWindow::handleSelectHold() {
     selectHoldTimer.start();
 }
+
+void MainWindow::handleChargePress() {
+     batteryLevel = 100;
+     displayBatteryLevel();
+ }
+
 
 /* ---------------------------------END OF SLOTS--------------------------- */
 
@@ -772,7 +827,7 @@ void MainWindow::updateModeUI() {
     ui->longPulse->repaint();
 }
 
-void MainWindow:: updateSessionsMenu(bool fromSaved) {
+void MainWindow:: updateSessionsMenu(bool fromSaved=false) {
     // Update UI when cycling through session groups
     allSessionGroupLightOff();
     switch (curSessionGroupIndex) {
@@ -900,26 +955,53 @@ void MainWindow::allFrequencyLightOff() {
 }
 
 void MainWindow:: changeButtonStyles(QPushButton* btn, QEvent* event){
-    if(event->type() == QEvent::Enter){
-         btn->setStyleSheet("color: " YELLOW ";"
-                            "border: 0.2em solid " LIGHTBLUE ";" ";"
-                            "min-height: 3em;"
-                            "max-height: 3em;"
-                            "min-width: 3em;"
-                            "max-width: 3em;"
-                            "border-radius: 1.5em;");
+    if(powerStatus) {
+        if(event->type() == QEvent::Enter){
+            btn->setStyleSheet("color: " YELLOW ";"
+                                 "border: 0.2em solid " LIGHTBLUE ";" ";"
+                                 "min-height: 3em;"
+                                 "max-height: 3em;"
+                                 "min-width: 3em;"
+                                 "max-width: 3em;"
+                                 "border-radius: 1.5em;");
 
+        }
+        else if(event->type() == QEvent::Leave){
+            btn->setStyleSheet("color: " YELLOW ";"
+                                "border: 0.2em solid " BLUE ";" ";"
+                                "min-height: 3em;"
+                                "max-height: 3em;"
+                                "min-width: 3em;"
+                                "max-width: 3em;"
+                                "border-radius: 1.5em;");
+
+        }
     }
-    else if(event->type() == QEvent::Leave){
-        btn->setStyleSheet("color: " YELLOW ";"
-                           "border: 0.2em solid " BLUE ";" ";"
-                           "min-height: 3em;"
-                           "max-height: 3em;"
-                           "min-width: 3em;"
-                           "max-width: 3em;"
-                           "border-radius: 1.5em;");
 
-   }
+    else {
+        if (btn == ui->pwrButton) {
+            if(event->type() == QEvent::Enter){
+                btn->setStyleSheet("color: " YELLOW ";"
+                                     "border: 0.2em solid " LIGHTBLUE ";" ";"
+                                     "min-height: 3em;"
+                                     "max-height: 3em;"
+                                     "min-width: 3em;"
+                                     "max-width: 3em;"
+                                     "border-radius: 1.5em;");
+
+            }
+            else if(event->type() == QEvent::Leave){
+                btn->setStyleSheet("color: " YELLOW ";"
+                                    "border: 0.2em solid " BLUE ";" ";"
+                                    "min-height: 3em;"
+                                    "max-height: 3em;"
+                                    "min-width: 3em;"
+                                    "max-width: 3em;"
+                                    "border-radius: 1.5em;");
+
+            }
+        }
+    }
 }
 
 void MainWindow::toggleButtonState(bool state) {
@@ -928,6 +1010,8 @@ void MainWindow::toggleButtonState(bool state) {
     ui->selectButton->setEnabled(state);
     ui->tabWidget->setEnabled(state);
     ui->modeButton->setEnabled(state);
+    ui->chargeButton->setEnabled(state);
+    ui->selectSavedButton->setEnabled(state);
 }
 
 void MainWindow::greenLightOn(){
