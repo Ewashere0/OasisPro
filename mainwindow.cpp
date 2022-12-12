@@ -11,6 +11,7 @@ MainWindow::MainWindow(QWidget *parent)
     powerStatus = false;
     ui->setupUi(this);
     ui->pwrButton->setEnabled(true);
+    ui->chargeButton->setEnabled(true);
     toggleButtonState(powerStatus);
 
 
@@ -25,10 +26,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->selectButton, SIGNAL(pressed()), this, SLOT (handleSelectHold()));
     //connect(ui->profileSelector, SIGNAL(currentIndexChanged(int)), this, SLOT (selectUser()));
     connect(ui->selectSavedButton, SIGNAL(released()), this, SLOT(handleSelectSavedPress()));
-    connect(ui->timeComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT (setDuration())); //Sets user defined time to cur duration upon change
     connect(ui->signInButton, SIGNAL(released()), this, SLOT(promptSignIn()));
-
     connect(ui->chargeButton, SIGNAL(released()), this, SLOT(handleChargePress()));
+    connect(ui->incDurationButton, SIGNAL(released()), this, SLOT(handleIncreaseDurationPress()));
+    connect(ui->decDurationButton, SIGNAL(released()), this, SLOT(handleDecreaseDurationPress()));
 
 
     // connect session timer to its handler
@@ -87,8 +88,8 @@ MainWindow::MainWindow(QWidget *parent)
         }
     }
 
-    // initalizing battery level to 100. After this, battery will have to be charged manually using the battery charge button
-    batteryLevel = 100;
+    // initalizing battery level to 60. After this, battery will have to be charged manually using the battery charge button
+    batteryLevel = 60;
 
     init();
 
@@ -97,13 +98,15 @@ MainWindow::MainWindow(QWidget *parent)
 }
 
 void MainWindow::init() {
-     curSessionGroupIndex = 0; // Default duration is 20 mins
+    curSessionGroupIndex = 0; // Default duration is 20 mins
 
-     curSessionIndex = 0; // Current session number (1-8) is 1
+    curSessionIndex = 0; // Current session number (1-8) is 1
 
-     curFrequencyIndex = 0; // Current selected frequency (if session group is user-defined) is "MET" (index 0)
+    curFrequencyIndex = 0; // Current selected frequency (if session group is user-defined) is "MET" (index 0)
 
-     curModeIndex = 0; // Default mode for user-defined sessions
+    curModeIndex = 0; // Default mode for user-defined sessions
+
+    signedInStatus = false; // Default is not signed in
 
     curDuration = durations[curSessionGroupIndex]; // setting default duration
 
@@ -112,7 +115,10 @@ void MainWindow::init() {
 
     // setting session time label to 00:00 as default on start-up
     ui->remainTimeN->setText("00:00");
-    }
+
+    // setting user defined duration label to 00:00 as default on start-up
+    ui->setDurationNLabel->setText("00:00");
+}
 
 MainWindow::~MainWindow()
 {
@@ -307,14 +313,22 @@ void MainWindow::togglePowerStatus() {
     powerStatus = !powerStatus;
     toggleButtonState(powerStatus);
     if (powerStatus) {
-        // The device always turn on with a full battery - assume that the user charges the device after turning it off
-        // This is the Default Battery Level
+
         init();
         idleTimer.restart();
 
         greenLightOn();
         displayBatteryLevel();
-        updateSessionsMenu(false);
+
+        // buttons disabled if battery less than 15. To enable them, user needs to press the charge battery button
+        if (batteryLevel < 15) {
+            toggleButtonState(false);
+            ui->chargeButton->setEnabled(true);
+        }
+
+        else {
+            updateSessionsMenu(false);
+        }
     }
     else {
 
@@ -329,7 +343,9 @@ void MainWindow::togglePowerStatus() {
 
             // Set remaining time to 00:00
             ui->remainTimeN->setText("00:00");
+
         }
+        ui->setDurationNLabel->setText("00:00");
         pwrLightOffAll();
     }
 }
@@ -527,8 +543,8 @@ void MainWindow:: handlePowerPress() {
             if (curSessionGroupIndex == 2) {
                // enable mode change button
                ui->modeButton->setEnabled(true);
-               // Add the duration from the dropdown box to the durations vector
-               durations[2] = ui->timeComboBox->currentText().toInt();
+               ui->incDurationButton->setEnabled(true);
+               ui->decDurationButton->setEnabled(true);
 
             }
         }
@@ -545,11 +561,6 @@ void MainWindow:: handlePowerPress() {
 
 //        qInfo("Session Group: %i", curSessionGroupIndex);
     }
-}
-
-void MainWindow:: setDuration() {
-     durations[2] = ui->timeComboBox->currentText().toInt(); //Sets new user defined duration for new session
-     curDuration = durations[curSessionGroupIndex];
 }
 
 void MainWindow:: handleDownPress() {
@@ -764,10 +775,30 @@ void MainWindow::handleSelectHold() {
 }
 
 void MainWindow::handleChargePress() {
-     batteryLevel = 100;
-     displayBatteryLevel();
+    // if battery < 15, then the buttons are enabled, then battery is recharged
+    if (batteryLevel < 15) {
+        toggleButtonState(powerStatus);
+    }
+    batteryLevel = 100;
+    displayBatteryLevel();
+    updateSessionsMenu(false);
  }
 
+void MainWindow::handleIncreaseDurationPress() {
+    if (curSessionGroupIndex == 2 && durations[2] <= MAX_USER_DUR) {
+        durations[2] += 5;
+        ui->setDurationNLabel->setText(QString::number(durations[2]) + ":00");
+    }
+
+}
+
+void MainWindow::handleDecreaseDurationPress() {
+    if (curSessionGroupIndex == 2 && durations[2] >= 5) {
+        durations[2] -= 5;
+        ui->setDurationNLabel->setText(QString::number(durations[2]) + ":00");
+    }
+
+}
 
 /* ---------------------------------END OF SLOTS--------------------------- */
 
@@ -884,9 +915,6 @@ void MainWindow::groupFortyFiveMinLightOn() {
 
 void MainWindow::groupUserDesignatedLightOn() {
     ui->userDesignatedLabel->setStyleSheet("color: " YELLOW ";");
-    ui->timeComboBox->setStyleSheet("selection-color: rgb(0, 0, 0);"
-                                    "background-color:" YELLOW ";");
-    ui->timeComboBox->setEnabled(true);
     ui->modeButton->setEnabled(true);
     ui->selectSavedButton->setEnabled(true);
     ui->modeButton->setStyleSheet("color: #e5e400;"
@@ -898,9 +926,6 @@ void MainWindow::groupUserDesignatedLightOn() {
 }
 void MainWindow::groupUserDesignatedLightOff(){
     ui->userDesignatedLabel->setStyleSheet("color:grey;");
-    ui->timeComboBox->setStyleSheet("color:black;"
-                                    "background-color: black;");
-    ui->timeComboBox->setEnabled(false);
     ui->modeButton->setEnabled(false);
     ui->selectSavedButton->setEnabled(false);
     ui->modeButton->setStyleSheet("color: black;"
@@ -1010,8 +1035,10 @@ void MainWindow::toggleButtonState(bool state) {
     ui->selectButton->setEnabled(state);
     ui->tabWidget->setEnabled(state);
     ui->modeButton->setEnabled(state);
-    ui->chargeButton->setEnabled(state);
     ui->selectSavedButton->setEnabled(state);
+    ui->incDurationButton->setEnabled(state);
+    ui->decDurationButton->setEnabled(state);
+
 }
 
 void MainWindow::greenLightOn(){

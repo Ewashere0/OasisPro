@@ -110,132 +110,6 @@ border-radius: 1.5em;
      <string>▼</string>
     </property>
    </widget>
-   <widget class="QSplitter" name="numberSplitter">
-    <property name="enabled">
-     <bool>false</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>330</x>
-      <y>240</y>
-      <width>46</width>
-      <height>240</height>
-     </rect>
-    </property>
-    <property name="orientation">
-     <enum>Qt::Vertical</enum>
-    </property>
-    <property name="opaqueResize">
-     <bool>true</bool>
-    </property>
-    <property name="childrenCollapsible">
-     <bool>true</bool>
-    </property>
-    <widget class="QLabel" name="pwrLvl8Label">
-     <property name="font">
-      <font>
-       <pointsize>16</pointsize>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">color: #fd0002;</string>
-     </property>
-     <property name="text">
-      <string> ⊕2</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="pwrLvl7Label">
-     <property name="font">
-      <font>
-       <pointsize>16</pointsize>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">color: #fd0002;</string>
-     </property>
-     <property name="text">
-      <string> ⊕1</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="pwrLvl6Label">
-     <property name="font">
-      <font>
-       <pointsize>16</pointsize>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">color: #e5e400;</string>
-     </property>
-     <property name="text">
-      <string>2.00</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="pwrLvl5Label">
-     <property name="font">
-      <font>
-       <pointsize>16</pointsize>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">color: #e5e400;</string>
-     </property>
-     <property name="text">
-      <string>1.50</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="pwrLvl4Label">
-     <property name="font">
-      <font>
-       <pointsize>16</pointsize>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">color: #e5e400;</string>
-     </property>
-     <property name="text">
-      <string>1.00</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="pwrLvl3Label">
-     <property name="font">
-      <font>
-       <pointsize>16</pointsize>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">color: #00ed00;</string>
-     </property>
-     <property name="text">
-      <string>0.75</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="pwrLvl2Label">
-     <property name="font">
-      <font>
-       <pointsize>16</pointsize>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">color: #00ed00;</string>
-     </property>
-     <property name="text">
-      <string>0.50</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="pwrLvl1Label">
-     <property name="font">
-      <font>
-       <pointsize>16</pointsize>
-      </font>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">color: #00ed00;</string>
-     </property>
-     <property name="text">
-      <string>0.25</string>
-     </property>
-    </widget>
-   </widget>
    <widget class="QPushButton" name="selectButton">
     <property name="geometry">
      <rect>
@@ -283,52 +157,6 @@ border-radius: 1.5em;
     </property>
     <property name="text">
      <string>▄</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="leftLabel">
-    <property name="geometry">
-     <rect>
-      <x>520</x>
-      <y>70</y>
-      <width>46</width>
-      <height>26</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>Noto Sans Adlam</family>
-      <pointsize>16</pointsize>
-      <bold>true</bold>
-     </font>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">color: #e5e400;</string>
-    </property>
-    <property name="text">
-     <string>&gt;L&lt;</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="rightLabel">
-    <property name="geometry">
-     <rect>
-      <x>580</x>
-      <y>70</y>
-      <width>46</width>
-      <height>26</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>Noto Sans Adlam</family>
-      <pointsize>16</pointsize>
-      <bold>true</bold>
-     </font>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">color: #00ed00;</string>
-    </property>
-    <property name="text">
-     <string>&gt;R&lt;</string>
     </property>
    </widget>
    <widget class="QLabel" name="brandName">
@@ -396,29 +224,6 @@ border-radius: 1.5em;
     </property>
     <property name="text">
      <string>canada</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="tDCSLabel">
-    <property name="geometry">
-     <rect>
-      <x>320</x>
-      <y>210</y>
-      <width>81</width>
-      <height>26</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>Noto Sans Adlam</family>
-      <pointsize>16</pointsize>
-      <bold>true</bold>
-     </font>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">color: #fd0002;</string>
-    </property>
-    <property name="text">
-     <string>tDCS</string>
     </property>
    </widget>
    <widget class="QTabWidget" name="tabWidget">
@@ -1003,38 +808,6 @@ max-width: 3em;
      <string>*</string>
     </property>
    </widget>
-   <widget class="QComboBox" name="timeComboBox">
-    <property name="enabled">
-     <bool>false</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>370</x>
-      <y>60</y>
-      <width>72</width>
-      <height>25</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">color: rgb(0, 0, 0);
-border-color:black;</string>
-    </property>
-    <item>
-     <property name="text">
-      <string>20</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>45</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>60</string>
-     </property>
-    </item>
-   </widget>
    <widget class="QComboBox" name="sessionSelector">
     <property name="geometry">
      <rect>
@@ -1079,6 +852,130 @@ border-radius: 1.5em;
     </property>
     <property name="text">
      <string>Charge Battery</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="recordedSessionsLabel">
+    <property name="geometry">
+     <rect>
+      <x>790</x>
+      <y>80</y>
+      <width>221</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Ubuntu</family>
+      <pointsize>25</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: #80c3bf</string>
+    </property>
+    <property name="text">
+     <string>Recorded Sessions:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="setDurationDLabel">
+    <property name="geometry">
+     <rect>
+      <x>230</x>
+      <y>20</y>
+      <width>71</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Ubuntu Condensed</family>
+      <pointsize>25</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: #80c3bf</string>
+    </property>
+    <property name="text">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Set duration:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="setDurationNLabel">
+    <property name="geometry">
+     <rect>
+      <x>310</x>
+      <y>20</y>
+      <width>91</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Ubuntu Condensed</family>
+      <pointsize>25</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: #80c3bf</string>
+    </property>
+    <property name="text">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; color:#48a51e;&quot;&gt;&amp;lt;Set_Duration&amp;gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="incDurationButton">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>30</y>
+      <width>22</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>18</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: #e5e400;
+border: 0.2em solid #80c3bf;
+min-height: 1em;
+max-height: 1em;
+min-width: 1em;
+max-width: 1em;
+border-radius: 1.5em;
+
+</string>
+    </property>
+    <property name="text">
+     <string>+</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="decDurationButton">
+    <property name="geometry">
+     <rect>
+      <x>430</x>
+      <y>30</y>
+      <width>22</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>18</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: #e5e400;
+border: 0.2em solid #80c3bf;
+min-height: 1em;
+max-height: 1em;
+min-width: 1em;
+max-width: 1em;
+border-radius: 1.5em;
+
+</string>
+    </property>
+    <property name="text">
+     <string>-</string>
     </property>
    </widget>
   </widget>

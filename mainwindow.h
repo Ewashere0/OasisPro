@@ -27,6 +27,9 @@ using namespace std;
 #define BLUE "#80c3bf"
 #define LIGHTBLUE "#e6faf8"
 
+// Max user-defined duration
+#define MAX_USER_DUR 240
+
 /* Change color instructions:
  * use the command ui->elementYourChanging->setStyleSheet("background-color : newColor");
  * then, use the command ui->elementYourChanging->repaint(); for those changes to be shown on gui.
@@ -172,7 +175,9 @@ private slots:
 
     void handleChargePress(); // sets battery level to 100 on press
 
-    void setDuration();
+    void handleIncreaseDurationPress(); // handles case when increase duration button is pressed
+    void handleDecreaseDurationPress(); // handles case when decrease duration button is pressed
+
 
 private:
     Ui::MainWindow *ui;
