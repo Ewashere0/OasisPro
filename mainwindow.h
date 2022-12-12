@@ -14,9 +14,9 @@
 #include <QTimer>
 #include <QtDebug>
 #include <cmath>
-#include <QCloseEvent>
 #include <QMessageBox>
 #include <sstream>
+#include <QRandomGenerator>
 
 
 using namespace std;
@@ -93,13 +93,6 @@ private:
     bool eventFilter(QObject* obj, QEvent* event);
     void changeButtonStyles(QPushButton* btn, QEvent* event);
 
-    void closeEvent(QCloseEvent *event);
-    void saveData();
-
-
-    void standby(); // what does this function do?
-
-
     void updateSessionsMenu(bool fromSaved); // updates the UI of the available sessions depending on the session group
     void startSession(bool saved); // starts the session functionality
     void softOff(); // session soft off functionality
@@ -109,18 +102,15 @@ private:
     void displayBatteryLevel(); // displays the current battery level by checking the batteryLevel variable
     void updateBatteryLevel(int duration); // updates the batterylevel variable after
     void handleBatteryLow(); // handles the battery level low extension
-    void startConnectionTest(); // to check device connection before session start
+    bool startConnectionTest(); // to check device connection before session start
     void displayConnection(int connectionQuality); // displays connection strength on UI (on the numbers 1-4 bar)
-    void connectionInvalid(); // handles the case where connection status is low
-    void connectionValid(); // confirms that connection is valid so session can start
-    void endConnectionTest(); // ends the connection test
     void recordTherapy(); // records the therapy session information (duration, frequency, type)
     void createUser(string un, UserProfile**); // handles the new user profile creation
     void updateView(); //Updates user profile list
     void updateIntensityUI(); // Update the UI based on current Intensity Level
 
 
-    void solidConnection();
+    void solidConnection(); //Displays connection level
     void noConnection();
     void okayConnection();
 
@@ -164,7 +154,7 @@ private slots:
     void handleSelectPress(); // handles the select button press to confirm the session start
     void handleSelectSavedPress();
 
-    //do something when the add profile button is clicked
+    //Handles adding a profile
     void handleAddProfilePress();
 
     // handles the press of the change mode button

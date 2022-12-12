@@ -24,7 +24,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->modeButton, SIGNAL(released()), this, SLOT (handleModePress()));
     connect(ui->pwrButton, SIGNAL(pressed()), this, SLOT (handlePowerHold()));
     connect(ui->selectButton, SIGNAL(pressed()), this, SLOT (handleSelectHold()));
-    //connect(ui->profileSelector, SIGNAL(currentIndexChanged(int)), this, SLOT (selectUser()));
     connect(ui->selectSavedButton, SIGNAL(released()), this, SLOT(handleSelectSavedPress()));
     connect(ui->signInButton, SIGNAL(released()), this, SLOT(promptSignIn()));
     connect(ui->chargeButton, SIGNAL(released()), this, SLOT(handleChargePress()));
@@ -122,24 +121,40 @@ void MainWindow::init() {
 
 MainWindow::~MainWindow()
 {
-// This line is commented out, unsure of its purpose. The sessionTypes is reset automatically every time the program is run, so why do
-// we need to manually remove each item in the sessionTypes ??? - Henry
-//    for (Session *s: sessionTypes) {
-//        if (s != NULL) {
-//            delete s;
-//        }
-//    }
-
     delete ui;
 }
 
-void MainWindow:: startConnectionTest() {
-    // DO SOMETHING
-    //Display connection,
+bool MainWindow:: startConnectionTest() {
+
+    //Display connection, blink lights, continue session
+    int randInt = QRandomGenerator::global()->bounded(0,100);
+
+    if ( 0 <= randInt && randInt <= 80) { //80% chance of good connection
+
+        displayConnection(2);
+        cout << "Connection 'Excellent'" <<endl;
+        return true;
+    } else if (80 < randInt && randInt <= 95) { //15% chance of ok conneciton
+
+        displayConnection(1); // Ok connection
+        cout << "Connection 'Okay'" <<endl;
+        return true;
+    } else {
+        displayConnection(0);//bad connection
+        // lights go from 8 to 1 for power off indication (Softoff)
+        for (int i=8; i>=1; i--) {
+            pwrLightOffAll();
+            pwrLightOn(i);
+            delay(300);
+        }
+        cout << "No Connection." << endl;
+        cout << "Returning voltage to safe testing level. Try again." << endl;
+        return false;
+    }
+
 }
 
 void MainWindow:: displayConnection(int connectionQuality) {
-    // DO SOMETHING
     //call a helper function based on the given connection
 
     if (connectionQuality == 0 ) { //No connection
@@ -199,20 +214,7 @@ void MainWindow::solidConnection(){
 }
 
 
-void MainWindow:: connectionInvalid() {
-    // DO SOMETHING
-}
-
-void MainWindow:: connectionValid() {
-    // DO SOMETHING
-}
-
-void MainWindow:: endConnectionTest() {
-    // DO SOMETHING
-}
-
-
-// Triggered after startSession() - when a session have just finished
+// Triggered after startSession - when a session have just finished
 void MainWindow:: promptToRecord() {
     // after session end, set timer to zero
     ui->remainTimeN->setText("00:00");
@@ -227,8 +229,6 @@ void MainWindow:: promptToRecord() {
     ui->selectButton->setEnabled(true);
     // Turn off the light for the Current Intensity Level
     pwrLightOff(curIntensity);
-    qInfo("Intensity at end: %i", curIntensity);
-    qInfo("Session at end: %i", curSessionIndex);
     // Turn on the light for the current session number (except when the User Designated group is chosen)
     if (curSessionGroupIndex != 2) {
         pwrLightOn(curSessionIndex + 1);
@@ -236,7 +236,7 @@ void MainWindow:: promptToRecord() {
 }
 
 void MainWindow:: recordTherapy() {
-    //don't save to guest profile
+    //Don't save to guest profile
     if (curUser->getUsername() == "Guest"){
         cout << "Please Sign Into a Profile to Save Session. (Cannot save session as 'Guest')" << endl;
         return;
@@ -265,7 +265,6 @@ void MainWindow:: createUser(string un, UserProfile** p) {
 }
 
 void MainWindow:: selectUser() {
-    // avoid currentIndex = -1
 
     if(ui->profileSelector->currentIndex() >= 0){
         int idx = ui->profileSelector->currentIndex();
@@ -352,20 +351,15 @@ void MainWindow::togglePowerStatus() {
 
 
 
-void MainWindow:: standby() {
-    // DO SOMETHING
-}
-
 void MainWindow:: updateBatteryLevel(int duration) {
     // Compute the battery drain based on the current Intensity level duration
     int batteryDrain = (duration / 5) + (curIntensity / 2);
     // Update the current Battery Level
     batteryLevel -= floor(batteryDrain);
-    qInfo("Battery Drain: %i", batteryDrain);
-    qInfo("Battery Level: %i", batteryLevel);
 }
 
 void MainWindow:: startSession(bool saved) {
+
 
     // Use curSessionGroupIndex for the duration vector to get the chosen Duration
     // Use curSessionIndex for the sessionTypes vector to get the chosen Session object, which will contain the chosen
@@ -381,11 +375,10 @@ void MainWindow:: startSession(bool saved) {
     Session *curSession;
     sessionTimer.setSingleShot(true);
 
+    curDuration = durations[curSessionGroupIndex];//Set current duration accordingly
 
-    if(!saved){
-        curSession = sessionTypes[curSessionIndex];
-    }
-    else{
+    if (saved){ //If session is already saved
+
         int idx = ui->sessionSelector->currentIndex();
         Record* r = curUser->getRecords().at(idx);
         curSession = r->getSession();
@@ -468,8 +461,8 @@ void MainWindow:: displayBatteryLevel() {
     else if (batteryLevel < 50 && batteryLevel >= 15) {
 
         for (int i =0; i < 2 ; ++i) {
-            pwrLightOn(1);
-            pwrLightOn(2);
+            ui->oneLabel->setStyleSheet("color: " YELLOW ";");
+            ui->twoLabel->setStyleSheet("color: " YELLOW ";");
             delay(300); //Sleeps for two seconds
             pwrLightOff(1);
             pwrLightOff(2);
@@ -478,7 +471,7 @@ void MainWindow:: displayBatteryLevel() {
     }
     else if (batteryLevel < 15) {
         for (int i =0; i < 2 ; ++i) {
-            pwrLightOn(1);
+            ui->oneLabel->setStyleSheet("color: " RED ";");
             delay(300); //Sleeps for two seconds
             pwrLightOff(1);
             delay(300); //Sleeps for two seconds
@@ -498,19 +491,16 @@ void MainWindow:: promptSignIn() {
         signedInStatus = false;
     } else {
         selectUser();
-        //ui->tabWidget->setEnabled(false);
         signedInStatus = true;
         updateView();
     }
-
 }
-
 
 void MainWindow:: handlePowerPress() {
     // turn on device
     if (!powerStatus) {
         int te = powerHoldTimer.elapsed();
-        if (te > 1000) {
+        if (te > 500) {
             cout << "Turning on device" << endl;
             togglePowerStatus();
             return;
@@ -519,7 +509,7 @@ void MainWindow:: handlePowerPress() {
 
     else {
         int te = powerHoldTimer.elapsed();
-        if (te > 1000) {
+        if (te > 500) {
             cout << "Turning off device" << endl;
             togglePowerStatus();
             return;
@@ -660,16 +650,20 @@ void MainWindow:: handleUpPress() {
 }
 
 void MainWindow:: handleSelectPress() {
-    // DO SOMETHING
     //Either start session or choose behaviour depending on mode
     if(!inSessionStatus){
-        // according to manual, session begins after a 5 sec delay
-        delay(5000);
-        startSession(false);
+        // according to manual, session begins after a 2.5 sec delay
+        cout << "Session will begin in 2.5 seconds. Please be patient." << endl;
+        ui->selectButton->setDisabled(true);
+        delay(2500);
+        ui->selectButton->setDisabled(false);
+        if (startConnectionTest()) {
+            startSession(false);
+        }
     }
     else{
         int te = selectHoldTimer.elapsed();
-        if (te >= 1000){
+        if (te >= 500){
             if (!signedInStatus){
                 cout << "Please Sign in Before Attempting to Record Therapies." <<endl;
             } else {
@@ -680,11 +674,22 @@ void MainWindow:: handleSelectPress() {
 }
 
 void MainWindow:: handleSelectSavedPress() {
-    // DO SOMETHING
     //Either start session or choose behaviour depending on mode
-    if(!inSessionStatus){
-        startSession(true);
+    if (signedInStatus && curUser->getRecords().size() > 0) {
+        if(!inSessionStatus){
+            // according to manual, session begins after a 2.5 sec delay
+            cout << "Session will begin in 2.5 seconds. Please be patient." << endl;
+            ui->selectSavedButton->setDisabled(true);
+            delay(2500);
+            ui->selectSavedButton->setDisabled(false);
+            if (startConnectionTest()) {
+                startSession(true);
+            }
+        }
+    }else {
+        cout << "Make Sure to Sign In and/or Record a Session Before Starting a Saved Sessions." <<endl;
     }
+
 }
 
 void MainWindow:: handleBatteryLow() {
@@ -756,8 +761,6 @@ void MainWindow::updatePerSecond() {
                     displayBatteryLevel();
                     updateIntensityUI();
                 }
-    //            qDebug() << "Previous RT: " << prevRt;
-    //            qDebug() << "Current RT: " << rt;
                 prevRt = rt;
                 // Check if battery is low and handle it accordingly
                 handleBatteryLow(); //End session if running, and continue blinking for a short period while ending session
@@ -780,8 +783,12 @@ void MainWindow::handleChargePress() {
         toggleButtonState(powerStatus);
     }
     batteryLevel = 100;
-    displayBatteryLevel();
-    updateSessionsMenu(false);
+    if (powerStatus) {
+        displayBatteryLevel();
+        updateSessionsMenu(false);
+    }
+    cout << "Battery has been charged to: " << batteryLevel << endl;
+
  }
 
 void MainWindow::handleIncreaseDurationPress() {
@@ -1070,10 +1077,3 @@ bool MainWindow:: eventFilter(QObject* obj, QEvent* event){
     return QWidget::eventFilter(obj, event);
 }
 
-void MainWindow:: closeEvent(QCloseEvent *event){
-    saveData();
-}
-
-void MainWindow:: saveData(){
-    //write user to files
-}
