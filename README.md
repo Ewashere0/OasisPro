@@ -25,6 +25,7 @@ Short_Pulse.qrc: qt file for adding resources
 
 ====================================TESTING=================================================
 All test scenarios work, refer to traceability matrix (page 17) and testing (page 26) in the document for detailed information about testing. 
+To run program, open project in QT ide on comp3004 virtual machine and select the run button.
 
 ====================================CONTRIBUTIONS================================================
 Refer to page 25 of document to see contributions for each team member.
