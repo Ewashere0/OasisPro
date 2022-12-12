@@ -22,8 +22,9 @@ UserProfile.cpp: object represents a userprofile of a device user with saved ses
 Resource files:
 Short_Pulse.qrc: qt file for adding resources
 *.png: images used to represent the pulse elements shown above the 'L' and 'R'.
-============================================================================================
-
 
 ====================================TESTING=================================================
 All test scenarios work, refer to traceability matrix (page 17) and testing (page 26) in the document for detailed information about testing. 
+
+====================================CONTRIBUTIONS================================================
+Refer to page 25 of document to see contributions for each team member.
